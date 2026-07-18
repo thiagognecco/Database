@@ -42,7 +42,7 @@ def health():
 # Import API routes
 print("[INIT] Importando rotas...")
 from app.api import filters, links, search, import_export, metadata
-from app.api import stats, sharing, google_drive, auth
+from app.api import stats, sharing, google_drive, auth, github_backup
 
 # Include routers
 app.include_router(filters.router)
@@ -61,6 +61,8 @@ app.include_router(sharing.router)
 print("[INIT] [OK] sharing.router")
 app.include_router(google_drive.router)
 print("[INIT] [OK] google_drive.router")
+app.include_router(github_backup.router)
+print("[INIT] [OK] github_backup.router")
 app.include_router(auth.router)
 print("[INIT] [OK] auth.router")
 

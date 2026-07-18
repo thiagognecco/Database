@@ -81,6 +81,7 @@ async function init() {
         document.getElementById('import-file').click();
     });
     document.getElementById('import-file').addEventListener('change', handleImport);
+    document.getElementById('github-backup-btn').addEventListener('click', handleGitHubBackup);
 
     // New link modal
     document.getElementById('extract-btn').addEventListener('click', extractMetadata);
@@ -660,6 +661,24 @@ async function exportLinks(format) {
 
     } catch (e) {
         showError(`Erro ao exportar: ${e.message}`);
+    }
+}
+
+async function handleGitHubBackup() {
+    const statusEl = document.getElementById('github-backup-status');
+    statusEl.textContent = 'Enviando...';
+    try {
+        const response = await fetch(`${API_BASE}/github/backup`, { method: 'POST' });
+        const data = await response.json();
+        if (response.ok) {
+            statusEl.textContent = `✅ Backup salvo em ${data.repo}`;
+            console.log('GitHub backup:', data);
+        } else {
+            statusEl.textContent = `❌ ${data.detail || 'Erro no backup'}`;
+        }
+    } catch (e) {
+        console.error('GitHub backup failed:', e);
+        statusEl.textContent = '❌ Falha na conexão';
     }
 }
 
