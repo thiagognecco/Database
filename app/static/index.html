@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Links</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="#all-links" class="active"><span class="sidebar-icon">⊞</span>All Links</a></li>
+            <li><a href="#categories"><span class="sidebar-icon">📁</span>Categorias</a></li>
+            <li><a href="#bookmarks"><span class="sidebar-icon">🔖</span>Marcadores</a></li>
+            <li><a href="#favorites"><span class="sidebar-icon">⭐</span>Favoritos</a></li>
+            <li><a href="#settings"><span class="sidebar-icon">⚙️</span>Settings</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+        <header>
+            <h1>📚 Banco de Links</h1>
+            <p id="network-info" class="network-info"></p>
+        </header>
+
+        <div class="search-section">
+            <input
+                type="text"
+                id="search-input"
+                class="search-bar"
+                placeholder="Buscar links (ex: SAP, Educação, Python, YouTube, artigo...)..."
+                autocomplete="off"
+            >
+            <button id="new-link-btn" class="btn btn-primary">✨ Novo Link</button>
+        </div>
+
+        <!-- ATALHOS RÁPIDOS -->
+        <div class="quick-shortcuts">
+            <button class="shortcut-btn active" data-shortcut="todos">📋 Todos os Links</button>
+            <button class="shortcut-btn" data-shortcut="ultimos">🆕 Últimos Adicionados</button>
+            <button class="shortcut-btn" data-shortcut="favoritos">⭐ Meus Favoritos</button>
+            <button class="shortcut-btn" data-shortcut="lidos">✅ Já Lidos</button>
+            <button class="shortcut-btn" data-shortcut="nao-lidos">📖 Para Ler</button>
+            <button class="shortcut-btn" data-shortcut="modo-leitor" id="reader-mode-btn">👁️ Modo Leitor</button>
+        </div>
+
+        <div class="filters">
+            <select id="category-filter" class="filter-select">
+                <option value="">Todas as Categorias</option>
+            </select>
+            <select id="platform-filter" class="filter-select">
+                <option value="">Todas as Plataformas</option>
+            </select>
+            <label class="filter-checkbox">
+                <input type="checkbox" id="favorites-filter">
+                Apenas Favoritos
+            </label>
+        </div>
+
+        <div class="results-info">
+            <span id="results-count">Carregando...</span>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Carregando links...</p>
+        </div>
+
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <p>😕 Nenhum link encontrado</p>
+            <p class="empty-hint">Tente ajustar os filtros ou criar um novo link</p>
+        </div>
+
+        <div id="links-container" class="links-grid">
+            <!-- Links rendered here -->
+        </div>
+
+        <div id="pagination" class="pagination">
+            <button id="prev-page-btn" class="btn btn-small" disabled>← Anterior</button>
+            <span id="page-info">Página 1</span>
+            <button id="next-page-btn" class="btn btn-small" disabled>Próxima →</button>
+        </div>
+
+        <footer>
+            <button id="export-csv-btn" class="btn btn-secondary">📥 Exportar CSV</button>
+            <button id="export-xlsx-btn" class="btn btn-secondary">📥 Exportar XLSX</button>
+            <button id="import-btn" class="btn btn-secondary">📤 Importar CSV</button>
+            <input type="file" id="import-file" accept=".csv" style="display: none;">
+        </footer>
+    </div>
+
+    <!-- Modal: Novo Link -->
+    <div id="new-link-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Novo Link</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-url">URL</label>
+                    <input type="url" id="new-url" placeholder="https://example.com" required>
+                    <button id="extract-btn" class="btn btn-small">Extrair Dados</button>
+                </div>
+                <div id="extract-status" class="form-status"></div>
+                <div class="form-group">
+                    <label for="new-titulo">Título</label>
+                    <input type="text" id="new-titulo" placeholder="Título do link">
+                </div>
+                <div class="form-group">
+                    <label for="new-resumo">Resumo</label>
+                    <textarea id="new-resumo" placeholder="Descrição breve do link" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="new-categoria">Categoria</label>
+                    <input type="text" id="new-categoria" placeholder="Ex: Tecnologia, IA...">
+                </div>
+                <div class="form-group">
+                    <label for="new-plataforma">Plataforma</label>
+                    <input type="text" id="new-plataforma" placeholder="Ex: Site, YouTube, LinkedIn...">
+                </div>
+                <div class="form-group">
+                    <label for="new-tema">Tema</label>
+                    <input type="text" id="new-tema" placeholder="Tema específico">
+                </div>
+                <div class="form-group">
+                    <label for="new-autor">Autor</label>
+                    <input type="text" id="new-autor" placeholder="Autor ou fonte">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-new-link-btn" class="btn btn-secondary">Cancelar</button>
+                <button id="save-new-link-btn" class="btn btn-primary">Salvar Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Link -->
+    <div id="edit-link-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Link</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="text" id="edit-url" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="edit-titulo">Título</label>
+                    <input type="text" id="edit-titulo">
+                </div>
+                <div class="form-group">
+                    <label for="edit-resumo">Resumo</label>
+                    <textarea id="edit-resumo" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-categoria">Categoria</label>
+                    <input type="text" id="edit-categoria">
+                </div>
+                <div class="form-group">
+                    <label for="edit-plataforma">Plataforma</label>
+                    <input type="text" id="edit-plataforma">
+                </div>
+                <div class="form-group">
+                    <label for="edit-tema">Tema</label>
+                    <input type="text" id="edit-tema">
+                </div>
+                <div class="form-group">
+                    <label for="edit-autor">Autor</label>
+                    <input type="text" id="edit-autor">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-edit-btn" class="btn btn-secondary">Cancelar</button>
+                <button id="save-edit-btn" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Confirmação -->
+    <div id="confirm-modal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-body">
+                <p id="confirm-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-cancel-btn" class="btn btn-secondary">Cancelar</button>
+                <button id="confirm-yes-btn" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes Completos do Link -->
+    <div id="link-detail-modal" class="link-detail-modal">
+        <div class="link-detail-content">
+            <div class="link-detail-header">
+                <button class="link-detail-close" onclick="closeLinkDetail()">×</button>
+                <h2 class="link-detail-title" id="detail-title"></h2>
+                <div class="link-detail-url" id="detail-url"></div>
+            </div>
+            <div class="link-detail-body">
+                <div class="detail-meta">
+                    <div class="meta-item">
+                        <div class="meta-label">📂 Categoria</div>
+                        <div class="meta-value" id="detail-category">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">🌐 Plataforma</div>
+                        <div class="meta-value" id="detail-platform">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">👤 Autor</div>
+                        <div class="meta-value" id="detail-author">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">📅 Data</div>
+                        <div class="meta-value" id="detail-date">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">⭐ Avaliação</div>
+                        <div class="meta-value" id="detail-rating">-</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">🏷️ Tags</div>
+                        <div class="meta-value" id="detail-tags">-</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📝 Resumo</h3>
+                    <p id="detail-description"></p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🎯 Tema</h3>
+                    <p id="detail-theme"></p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Ações</h3>
+                    <button id="detail-open-link-btn" class="link-open-btn">🔗 Abrir Link</button>
+                    <button id="detail-toggle-favorite-btn" class="link-open-btn" style="background: var(--primary-color); margin-left: 10px;">⭐ Favoritar</button>
+                    <button id="detail-mark-read-btn" class="link-open-btn" style="background: var(--success-color); margin-left: 10px;">✅ Marcar como Lido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+        </div>
+    </div>
+</body>
+</html>
