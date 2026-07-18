@@ -1,0 +1,3 @@
+- [PIN persistence](pin-persistence.md) — PIN changes are stored in the SQLite `config` table so they survive restarts.
+- [GitHub backup](github-backup.md) — Cloud backups use a manual GitHub personal access token instead of Replit OAuth connectors, which the user reported require a paid plan.
+- [Requirements mismatch](requirements-mismatch.md) — Imported project listed Flask but actually runs FastAPI/uvicorn; verify requirements.txt against imports before installing.

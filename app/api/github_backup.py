@@ -28,6 +28,21 @@ def _get_token():
     return token
 
 
+def _normalize_repo(repo: str) -> str:
+    """Accept 'user/repo' or full GitHub URLs and return 'user/repo'."""
+    repo = repo.strip().rstrip("/")
+    if repo.startswith("https://github.com/"):
+        repo = repo[len("https://github.com/"):]
+    if repo.startswith("github.com/"):
+        repo = repo[len("github.com/"):]
+    if repo.count("/") != 1 or not all(repo.split("/")):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Formato de repositório inválido: '{repo}'. Use 'usuario/repo' ou a URL completa do GitHub.",
+        )
+    return repo
+
+
 def _get_repo():
     repo = os.getenv(REPO_ENV_VAR)
     if not repo:
@@ -35,7 +50,7 @@ def _get_repo():
             status_code=503,
             detail=f"{REPO_ENV_VAR} não configurado. Defina no formato 'usuario/repo'.",
         )
-    return repo
+    return _normalize_repo(repo)
 
 
 @router.get("/status")
