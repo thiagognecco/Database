@@ -6,6 +6,16 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
+class Config(Base):
+    """Application configuration / settings."""
+    __tablename__ = "config"
+
+    id = Column(Integer, primary_key=True)
+    chave = Column(String(100), unique=True, nullable=False, index=True)
+    valor = Column(Text, nullable=True)
+    atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class Link(Base):
     """Link com metadados completos."""
     __tablename__ = "links"

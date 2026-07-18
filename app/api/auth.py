@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import json
 import os
 
-from app.database import get_db
+from app.database import get_db, get_config, set_config
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -15,8 +15,18 @@ SESSION_TIMEOUT = timedelta(hours=24)
 
 
 def _get_default_pin():
-    """Get PIN from environment or use default."""
-    return os.getenv("BANCO_LINKS_PIN", "1234")
+    """Get PIN from environment, database, or use default."""
+    env_pin = os.getenv("BANCO_LINKS_PIN")
+    if env_pin:
+        return env_pin
+    try:
+        db = next(get_db())
+        db_pin = get_config(db, "auth_pin")
+        if db_pin:
+            return db_pin
+    except Exception:
+        pass
+    return "1234"
 
 
 @router.post("/login")
@@ -85,7 +95,7 @@ def require_auth(session_token: str = None):
 
 @router.post("/change-pin")
 def change_pin(old_pin: str, new_pin: str, db: Session = Depends(get_db)):
-    """Change PIN."""
+    """Change PIN and persist it in the database."""
     correct_pin = _get_default_pin()
 
     if old_pin != correct_pin:
@@ -94,8 +104,11 @@ def change_pin(old_pin: str, new_pin: str, db: Session = Depends(get_db)):
     if len(new_pin) < 4:
         raise HTTPException(status_code=400, detail="PIN deve ter pelo menos 4 dígitos")
 
-    # In production, persist this securely
+    set_config(db, "auth_pin", new_pin)
+    # Clear in-memory sessions so old sessions are invalidated
+    _sessions.clear()
+
     return {
-        "message": "PIN updated (local only - implemente persistência)",
-        "warning": "Defina BANCO_LINKS_PIN na variável de ambiente para persistir",
+        "message": "PIN atualizado com sucesso",
+        "warning": None,
     }

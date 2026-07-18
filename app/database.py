@@ -34,6 +34,26 @@ def get_db():
         db.close()
 
 
+def get_config(db, chave: str, default: str = None) -> str:
+    """Get a config value from the database."""
+    from app.models import Config
+    row = db.query(Config).filter(Config.chave == chave).first()
+    return row.valor if row else default
+
+
+def set_config(db, chave: str, valor: str) -> None:
+    """Set or update a config value in the database."""
+    from app.models import Config
+    from datetime import datetime
+    row = db.query(Config).filter(Config.chave == chave).first()
+    if row:
+        row.valor = valor
+        row.atualizado_em = datetime.utcnow()
+    else:
+        db.add(Config(chave=chave, valor=valor))
+    db.commit()
+
+
 def init_db():
     """Initialize database: create tables and FTS5 virtual table."""
     # Create regular tables
