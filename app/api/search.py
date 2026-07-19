@@ -87,13 +87,16 @@ def search_links(
             "data": [link.to_dict() for link in links],
         }
 
-    # Use LIKE search (simple and reliable)
+    # Use LIKE search (simple and reliable) - busca em TODOS os campos
     search_term = f"%{q}%"
     links_query = db.query(Link).filter(
-        (Link.titulo.ilike(search_term)) |
-        (Link.resumo.ilike(search_term)) |
-        (Link.autor.ilike(search_term)) |
-        (Link.categoria.ilike(search_term))
+        (Link.titulo.ilike(search_term)) |          # Título
+        (Link.resumo.ilike(search_term)) |          # Resumo
+        (Link.autor.ilike(search_term)) |           # Autor
+        (Link.categoria.ilike(search_term)) |       # Categoria
+        (Link.tema.ilike(search_term)) |            # Tema
+        (Link.plataforma.ilike(search_term)) |      # Plataforma
+        (Link.url.ilike(search_term))               # URL
     )
 
     if categoria:
