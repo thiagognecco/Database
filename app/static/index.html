@@ -46,11 +46,34 @@
         <div class="quick-shortcuts">
             <button class="shortcut-btn active" data-shortcut="todos">📋 Todos os Links</button>
             <button class="shortcut-btn" data-shortcut="ultimos">🆕 Últimos Adicionados</button>
-            <button class="shortcut-btn" data-shortcut="favoritos">⭐ Meus Favoritos</button>
+            <button class="shortcut-btn" data-shortcut="favoritos" id="favorites-shortcut">⭐ Meus Favoritos</button>
             <button class="shortcut-btn" data-shortcut="lidos">✅ Já Lidos</button>
             <button class="shortcut-btn" data-shortcut="nao-lidos">📖 Para Ler</button>
             <button class="shortcut-btn" data-shortcut="modo-leitor" id="reader-mode-btn">👁️ Modo Leitor</button>
             <button class="shortcut-btn" id="view-mode-toggle" onclick="toggleViewMode()">📋 Modo Lista</button>
+        </div>
+
+        <!-- PAINEL DE FAVORITOS -->
+        <div id="favorites-panel" class="favorites-panel" style="display: none;">
+            <div class="favorites-header">
+                <span>⭐ Meus Favoritos</span>
+                <span id="favorites-count" class="favorites-count"></span>
+            </div>
+            <div class="favorites-filters">
+                <select id="favorites-category-filter" class="filter-select">
+                    <option value="">Todas as Categorias</option>
+                </select>
+                <select id="favorites-platform-filter" class="filter-select">
+                    <option value="">Todas as Plataformas</option>
+                </select>
+                <select id="favorites-sort" class="filter-select">
+                    <option value="recentes">Mais Recentes</option>
+                    <option value="antigos">Mais Antigos</option>
+                    <option value="alfabetico">Alfabético (A-Z)</option>
+                    <option value="alfabetico-desc">Alfabético (Z-A)</option>
+                </select>
+                <button id="close-favorites-btn" class="btn btn-secondary">Fechar</button>
+            </div>
         </div>
 
         <!-- BARRA DE CATEGORIAS -->

@@ -38,6 +38,9 @@ const clearTagsBtn = document.getElementById('clear-tags-btn');
 let totalResults = 0;
 let categoriesData = {};
 let selectedTags = new Set();
+let favoritesViewActive = false;
+let favoritesData = [];
+let favoritesSortBy = 'recentes';
 let editingLinkId = null;
 let confirmCallback = null;
 let suggestionsDropdown = null;
@@ -93,6 +96,20 @@ async function init() {
     categoryFilter.addEventListener('change', handleSearch);
     platformFilter.addEventListener('change', handleSearch);
     favoritesFilter.addEventListener('change', handleSearch);
+
+    // Favorites panel
+    document.getElementById('favorites-shortcut')?.addEventListener('click', toggleFavoritesPanel);
+    document.getElementById('close-favorites-btn')?.addEventListener('click', () => {
+        favoritesViewActive = false;
+        document.getElementById('favorites-panel').style.display = 'none';
+    });
+    document.getElementById('favorites-category-filter')?.addEventListener('change', loadFavorites);
+    document.getElementById('favorites-platform-filter')?.addEventListener('change', loadFavorites);
+    document.getElementById('favorites-sort')?.addEventListener('change', (e) => {
+        favoritesSortBy = e.target.value;
+        renderFavoritesData();
+    });
+
     newLinkBtn.addEventListener('click', openNewLinkModal);
     prevPageBtn.addEventListener('click', () => previousPage());
     nextPageBtn.addEventListener('click', () => nextPage());
@@ -408,6 +425,102 @@ function clearAllTags() {
     updateSelectedTagsDisplay();
     currentPage = 0;
     performSearch();
+}
+
+async function toggleFavoritesPanel() {
+    const panel = document.getElementById('favorites-panel');
+    const favoritesCategoryFilter = document.getElementById('favorites-category-filter');
+    const favoritesPlatformFilter = document.getElementById('favorites-platform-filter');
+
+    if (!favoritesViewActive) {
+        favoritesViewActive = true;
+        panel.style.display = 'block';
+
+        // Load categories and platforms for favorites filters
+        if (favoritesCategoryFilter.children.length === 1) {
+            const categories = await fetch(`${API_BASE}/filters/categorias`)
+                .then(r => r.json())
+                .catch(() => ({ categorias: [] }));
+            categories.categorias?.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                favoritesCategoryFilter.appendChild(option);
+            });
+        }
+
+        if (favoritesPlatformFilter.children.length === 1) {
+            const platforms = await fetch(`${API_BASE}/filters/plataformas`)
+                .then(r => r.json())
+                .catch(() => ({ plataformas: [] }));
+            platforms.plataformas?.forEach(plat => {
+                const option = document.createElement('option');
+                option.value = plat;
+                option.textContent = plat;
+                favoritesPlatformFilter.appendChild(option);
+            });
+        }
+
+        loadFavorites();
+    } else {
+        favoritesViewActive = false;
+        panel.style.display = 'none';
+    }
+}
+
+async function loadFavorites() {
+    try {
+        const categoryFilter = document.getElementById('favorites-category-filter').value;
+        const platformFilter = document.getElementById('favorites-platform-filter').value;
+
+        let url = `${API_BASE}/links?favorito=true`;
+        if (categoryFilter) url += `&categoria=${encodeURIComponent(categoryFilter)}`;
+        if (platformFilter) url += `&plataforma=${encodeURIComponent(platformFilter)}`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        favoritesData = data.data || [];
+        document.getElementById('favorites-count').textContent = `(${favoritesData.length})`;
+
+        renderFavoritesData();
+    } catch (e) {
+        console.error('Failed to load favorites:', e);
+        showError('Erro ao carregar favoritos');
+    }
+}
+
+function renderFavoritesData() {
+    // Apply sorting
+    const sorted = [...favoritesData];
+    if (favoritesSortBy === 'recentes') {
+        sorted.sort((a, b) => new Date(b.atualizado_em) - new Date(a.atualizado_em));
+    } else if (favoritesSortBy === 'antigos') {
+        sorted.sort((a, b) => new Date(a.atualizado_em) - new Date(b.atualizado_em));
+    } else if (favoritesSortBy === 'alfabetico') {
+        sorted.sort((a, b) => (a.titulo || a.url).localeCompare(b.titulo || b.url));
+    } else if (favoritesSortBy === 'alfabetico-desc') {
+        sorted.sort((a, b) => (b.titulo || b.url).localeCompare(a.titulo || a.url));
+    }
+
+    // Update the main links container
+    linksContainer.innerHTML = '';
+    if (sorted.length === 0) {
+        emptyStateEl.style.display = 'block';
+        return;
+    }
+
+    emptyStateEl.style.display = 'none';
+    if (viewMode === 'lista') {
+        linksContainer.classList.add('links-list-mode');
+        linksContainer.classList.remove('links-grid');
+    } else {
+        linksContainer.classList.add('links-grid');
+        linksContainer.classList.remove('links-list-mode');
+    }
+
+    renderLinks(sorted);
+    resultsCount.textContent = `${sorted.length} link${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`;
 }
 
 async function handleSearch() {
