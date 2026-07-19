@@ -746,7 +746,7 @@ function createLinkCard(link) {
             </button>
         </div>
         <div class="card-title">
-            <a href="${escapeHtml(link.url)}" target="_blank">${escapeHtml(link.titulo || link.url)}</a>
+            <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
         </div>
         <div class="card-meta">
             ${link.autor ? `<div class="meta-item">👤 ${escapeHtml(link.autor)}</div>` : ''}
@@ -763,6 +763,12 @@ function createLinkCard(link) {
             <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
         </div>
     `;
+
+    // Event listener para abrir detalhes do link
+    card.querySelector('.card-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        showLinkDetail(link);
+    });
 
     // Event listeners para favoritar
     card.querySelector('.star-btn').addEventListener('click', (e) => {
@@ -802,7 +808,7 @@ function createLinkListItem(link) {
 
     item.innerHTML = `
         <div class="list-linha1">
-            <a href="${escapeHtml(link.url)}" class="list-titulo" target="_blank">${escapeHtml(link.titulo || link.url)}</a>
+            <a href="#" class="list-titulo" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
             <div class="list-direita-l1">
                 <span class="list-platform">${escapeHtml(platform)}</span>
                 <span class="list-data">${dateShort}</span>
@@ -821,6 +827,11 @@ function createLinkListItem(link) {
     `;
 
     // Event listeners
+    item.querySelector('.list-titulo').addEventListener('click', (e) => {
+        e.preventDefault();
+        showLinkDetail(link);
+    });
+
     item.querySelector('.btn-list-edit').addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
