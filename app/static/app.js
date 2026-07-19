@@ -8,8 +8,8 @@ let currentCategory = '';
 let currentPlatform = '';
 let currentFavoriteFilter = false;
 
-// Modo de visualização (cards ou lista)
-let viewMode = localStorage.getItem('linkViewMode') || 'cards';
+// Modo de visualização (cards ou lista) - padrão lista para mostrar layout compacto
+let viewMode = localStorage.getItem('linkViewMode') || 'lista';
 
 // DOM Elements
 const searchInput = document.getElementById('search-input');
