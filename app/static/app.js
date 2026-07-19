@@ -172,10 +172,10 @@ function showSuggestionsDropdown(suggestions, query) {
         top: ${searchInput.getBoundingClientRect().bottom + window.scrollY}px;
         left: ${searchInput.getBoundingClientRect().left}px;
         width: ${searchInput.offsetWidth}px;
-        background: white;
-        border: 1px solid #e2e8f0;
+        background: #1a1a18;
+        border: 1px solid #383835;
         border-radius: 6px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         z-index: 100;
         max-height: 300px;
         overflow-y: auto;
@@ -186,8 +186,9 @@ function showSuggestionsDropdown(suggestions, query) {
         item.style.cssText = `
             padding: 12px 16px;
             cursor: pointer;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid #383835;
             font-size: 0.95em;
+            color: #f9f9f7;
         `;
 
         // Highlight matching part
@@ -196,10 +197,10 @@ function showSuggestionsDropdown(suggestions, query) {
         item.innerHTML = highlighted;
 
         item.addEventListener('mouseenter', () => {
-            item.style.backgroundColor = '#f0f4f8';
+            item.style.backgroundColor = '#2c2c2a';
         });
         item.addEventListener('mouseleave', () => {
-            item.style.backgroundColor = 'white';
+            item.style.backgroundColor = '#1a1a18';
         });
 
         item.addEventListener('click', () => {
@@ -486,7 +487,7 @@ function showToast(message, type = 'error', duration = 3000) {
         position: fixed;
         top: 20px;
         right: 20px;
-        background-color: ${type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#d97706'};
+        background-color: ${type === 'error' ? '#8e2626' : type === 'success' ? '#10b981' : '#c6613f'};
         color: white;
         padding: 12px 20px;
         border-radius: 6px;
