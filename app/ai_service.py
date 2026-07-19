@@ -3,8 +3,11 @@ import json
 import re
 import os
 import logging
+from dotenv import load_dotenv
 from anthropic import Anthropic
 from app.ai_cache import ai_cache, rate_limiter
+
+load_dotenv()
 
 client = Anthropic()
 logger = logging.getLogger(__name__)
@@ -71,10 +74,13 @@ async def categorize_link(url: str, titulo: str = "", resumo: str = "") -> dict:
     """
     global API_CALL_COUNT
 
-    # Quick check for common keywords first
+    # Quick check for common keywords first (match whole words to avoid false positives)
     text = f"{titulo} {resumo} {url}".lower()
+    import re
     for keyword, category in COMMON_CATEGORIES.items():
-        if keyword in text:
+        # Use word boundary for short keywords to avoid matching inside other words
+        pattern = r'\b' + re.escape(keyword) + r'\b' if len(keyword) <= 4 else re.escape(keyword)
+        if re.search(pattern, text):
             return {
                 "categoria": category,
                 "tema": keyword.title(),
@@ -100,21 +106,28 @@ async def categorize_link(url: str, titulo: str = "", resumo: str = "") -> dict:
         }
 
     # Use Claude for smart categorization with improved prompt
-    prompt = f"""Analyze this link and categorize it.
+    prompt = f"""Analise este link e categorize-o. Responda em português do Brasil.
 
 URL: {url}
-Title: {titulo}
-Summary: {resumo}
+Título: {titulo}
+Resumo: {resumo}
 
-Respond ONLY with this JSON (no markdown, no extra text):
+Responda APENAS com este JSON (sem markdown, sem texto extra, em português):
 {{
-    "categoria": "Must be one of: Tecnologia, Educação, Programação, Desenvolvimento, IA, Marketing, Negócios, Saúde, Jurídico, Finanças, Outro",
-    "tema": "Main topic in 2-3 words (e.g., 'Python Web Dev', 'Machine Learning', 'API Design')",
-    "confiabilidade": "Alta, Média, or Baixa based on URL quality"
+    "categoria": "Deve ser uma de: Tecnologia, Educação, Programação, Desenvolvimento, IA, Marketing, Negócios, Saúde, Jurídico, Finanças, Outro",
+    "tema": "Tema principal em 2-3 palavras em português, sem abreviar (ex: 'Python', 'Machine Learning', 'Design de API')",
+    "confiabilidade": "Alta, Média ou Baixa baseado na qualidade da URL"
 }}
 
-Examples:
+Dicas:
+- Sites oficiais de linguagens de programação (python.org, nodejs.org, etc.) → categoria "Programação"
+- Repositórios, bibliotecas e SDKs de código → categoria "Programação" ou "Desenvolvimento"
+- Modelos de IA, LLMs, APIs de IA → categoria "IA"
+- O tema deve ser específico e nunca abreviado. Não use "Ia" como tema.
+
+Exemplos:
 - https://github.com/openai/gpt-4 → {{"categoria": "IA", "tema": "GPT-4", "confiabilidade": "Alta"}}
+- https://www.python.org → {{"categoria": "Programação", "tema": "Python", "confiabilidade": "Alta"}}
 - https://medium.com/python-tips → {{"categoria": "Programação", "tema": "Python", "confiabilidade": "Média"}}"""
 
     try:
@@ -153,23 +166,74 @@ Examples:
         }
 
 
+async def refine_metadata_pt(titulo: str, resumo: str, url: str) -> dict:
+    """
+    Translate and refine scraped title/summary into natural Portuguese (Brazil).
+    """
+    if not titulo and not resumo:
+        return {"titulo": titulo, "resumo": resumo}
+
+    wait_time = rate_limiter.wait_if_needed()
+    if wait_time > 0:
+        logger.warning(f"Rate limited, skipping metadata refinement")
+        return {"titulo": titulo, "resumo": resumo}
+
+    prompt = f"""Você recebeu um título e resumo extraídos de uma página web. Reescreva-os em português do Brasil de forma natural, clara e concisa.
+
+URL: {url}
+Título original: {titulo or "Não disponível"}
+Resumo original: {resumo or "Não disponível"}
+
+Responda APENAS com este JSON (sem markdown, sem texto extra):
+{{
+    "titulo": "Título em português (curto e claro)",
+    "resumo": "Resumo de 1-2 frases em português"
+}}
+
+Se o texto original já estiver em português, apenas melhore a redação."""
+
+    try:
+        message = client.messages.create(
+            model=MODEL,
+            max_tokens=300,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        global API_CALL_COUNT
+        API_CALL_COUNT += 1
+        response_text = message.content[0].text.strip()
+        result = _parse_json_response(response_text)
+
+        if result and "titulo" in result and "resumo" in result:
+            return {
+                "titulo": result["titulo"] or titulo,
+                "resumo": result["resumo"] or resumo,
+            }
+
+        return {"titulo": titulo, "resumo": resumo}
+
+    except Exception as e:
+        logger.error(f"AI metadata refinement error: {e}", exc_info=True)
+        return {"titulo": titulo, "resumo": resumo}
+
+
 async def extract_metadata_with_ai(url: str) -> dict:
     """
     Extract better metadata using Claude (fallback for failed web scraping).
     """
-    prompt = f"""Predict the content of this URL and suggest a title and summary.
+    prompt = f"""Preveja o conteúdo desta URL e sugira um título e resumo em português do Brasil.
 
 URL: {url}
 
-Respond ONLY with this JSON (no markdown, no extra text):
+Responda APENAS com este JSON (sem markdown, sem texto extra, em português):
 {{
-    "titulo": "Likely accurate page title (short, clear)",
-    "resumo": "1-2 sentence summary of what this resource contains"
+    "titulo": "Título provável da página em português (curto, claro)",
+    "resumo": "Resumo de 1-2 frases em português sobre o que este recurso contém"
 }}
 
-Focus on accuracy. Examples:
-- github.com/user/repo → {{"titulo": "User/Repo", "resumo": "GitHub repository for..."}}
-- medium.com/@author/article → {{"titulo": "Article Title", "resumo": "Brief description based on URL structure"}}"""
+Foco em precisão. Exemplos:
+- github.com/usuario/repo → {{"titulo": "Usuário/Repo", "resumo": "Repositório GitHub para..."}}
+- medium.com/@author/artigo → {{"titulo": "Título do Artigo", "resumo": "Descrição breve baseada na estrutura da URL"}}"""
 
     try:
         message = client.messages.create(
@@ -224,13 +288,13 @@ async def generate_summary_with_ai(titulo: str, url: str) -> str:
         logger.warning(f"Rate limited, skipping summary generation")
         return ""
 
-    prompt = f"""Generate a concise summary (1-2 sentences) describing what the user will find at this resource.
+    prompt = f"""Gere um resumo conciso (1-2 frases) em português do Brasil descrevendo o que o usuário encontrará neste recurso.
 
-Title: {titulo}
+Título: {titulo}
 URL: {url}
 
-Respond ONLY with the summary text (no JSON, no markdown, no quotes, just plain text).
-Keep it clear, informative, and under 100 characters if possible."""
+Responda APENAS com o texto do resumo em português (sem JSON, sem markdown, sem aspas, apenas texto puro).
+Mantenha claro, informativo, e preferencialmente com menos de 100 caracteres."""
 
     try:
         message = client.messages.create(
