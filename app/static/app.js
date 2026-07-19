@@ -66,12 +66,6 @@ async function init() {
         }, 200);
     });
 
-    // Botão de busca
-    document.getElementById('search-btn').addEventListener('click', () => {
-        handleSearch();
-        clearSearchInput();
-    });
-
     categoryFilter.addEventListener('change', handleSearch);
     platformFilter.addEventListener('change', handleSearch);
     favoritesFilter.addEventListener('change', handleSearch);
