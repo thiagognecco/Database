@@ -349,7 +349,6 @@ function selectCategory(categoryName) {
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    document.querySelector(`[data-category=""]`)?.classList.add('active');
 
     if (categoryName) {
         document.querySelector(`[data-category="${categoryName}"]`)?.classList.add('active');
