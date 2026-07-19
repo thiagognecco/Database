@@ -100,20 +100,20 @@ async def categorize_link(url: str, titulo: str = "", resumo: str = "") -> dict:
         }
 
     # Use Claude for smart categorization with improved prompt
-    prompt = f"""Analise este link e categorize-o.
+    prompt = f"""Analyze this link and categorize it.
 
 URL: {url}
-Título: {titulo}
-Resumo: {resumo}
+Title: {titulo}
+Summary: {resumo}
 
-Responda APENAS com este JSON (sem markdown, sem texto extra):
+Respond ONLY with this JSON (no markdown, no extra text):
 {{
-    "categoria": "Deve ser uma de: Tecnologia, Educação, Programação, Desenvolvimento, IA, Marketing, Negócios, Saúde, Jurídico, Finanças, Outro",
-    "tema": "Tema principal em 2-3 palavras (ex: 'Web Python', 'Machine Learning', 'Design de API')",
-    "confiabilidade": "Alta, Média ou Baixa baseado na qualidade da URL"
+    "categoria": "Must be one of: Tecnologia, Educação, Programação, Desenvolvimento, IA, Marketing, Negócios, Saúde, Jurídico, Finanças, Outro",
+    "tema": "Main topic in 2-3 words (e.g., 'Python Web Dev', 'Machine Learning', 'API Design')",
+    "confiabilidade": "Alta, Média, or Baixa based on URL quality"
 }}
 
-Exemplos:
+Examples:
 - https://github.com/openai/gpt-4 → {{"categoria": "IA", "tema": "GPT-4", "confiabilidade": "Alta"}}
 - https://medium.com/python-tips → {{"categoria": "Programação", "tema": "Python", "confiabilidade": "Média"}}"""
 
@@ -157,19 +157,19 @@ async def extract_metadata_with_ai(url: str) -> dict:
     """
     Extract better metadata using Claude (fallback for failed web scraping).
     """
-    prompt = f"""Preveja o conteúdo desta URL e sugira um título e resumo.
+    prompt = f"""Predict the content of this URL and suggest a title and summary.
 
 URL: {url}
 
-Responda APENAS com este JSON (sem markdown, sem texto extra):
+Respond ONLY with this JSON (no markdown, no extra text):
 {{
-    "titulo": "Título provável da página (curto, claro)",
-    "resumo": "Resumo de 1-2 frases sobre o que este recurso contém"
+    "titulo": "Likely accurate page title (short, clear)",
+    "resumo": "1-2 sentence summary of what this resource contains"
 }}
 
-Foco em precisão. Exemplos:
-- github.com/usuario/repo → {{"titulo": "Usuário/Repo", "resumo": "Repositório GitHub para..."}}
-- medium.com/@author/artigo → {{"titulo": "Título do Artigo", "resumo": "Descrição breve baseada na estrutura da URL"}}"""
+Focus on accuracy. Examples:
+- github.com/user/repo → {{"titulo": "User/Repo", "resumo": "GitHub repository for..."}}
+- medium.com/@author/article → {{"titulo": "Article Title", "resumo": "Brief description based on URL structure"}}"""
 
     try:
         message = client.messages.create(
@@ -224,13 +224,13 @@ async def generate_summary_with_ai(titulo: str, url: str) -> str:
         logger.warning(f"Rate limited, skipping summary generation")
         return ""
 
-    prompt = f"""Gere um resumo conciso (1-2 frases) descrevendo o que o usuário encontrará neste recurso.
+    prompt = f"""Generate a concise summary (1-2 sentences) describing what the user will find at this resource.
 
-Título: {titulo}
+Title: {titulo}
 URL: {url}
 
-Responda APENAS com o texto do resumo (sem JSON, sem markdown, sem aspas, apenas texto puro).
-Mantenha claro, informativo, e preferencialmente com menos de 100 caracteres."""
+Respond ONLY with the summary text (no JSON, no markdown, no quotes, just plain text).
+Keep it clear, informative, and under 100 characters if possible."""
 
     try:
         message = client.messages.create(
