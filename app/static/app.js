@@ -151,6 +151,9 @@ async function init() {
         closeAllModals();
     });
 
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
     // Initial search
     handleSearch();
 }
@@ -1336,4 +1339,20 @@ function toggleDarkMode() {
 function regenerateApiKey() {
     // TODO: Implement API key regeneration
     showToast('🔄 Regenerar API Key - Função em desenvolvimento', 'info');
+}
+
+function handleKeyboardShortcuts(e) {
+    // Ctrl+K or Cmd+K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+    }
+
+    // Esc to clear search
+    if (e.key === 'Escape' && document.activeElement === searchInput && searchInput.value) {
+        searchInput.value = '';
+        clearSearchBtn.classList.remove('visible');
+        handleSearch();
+    }
 }
