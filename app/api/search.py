@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+import json
 
 from app.database import get_db
 from app.models import Link
@@ -60,14 +61,21 @@ def search_links(
     q: str = None,
     categoria: str = None,
     plataforma: str = None,
+    tags: str = None,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db),
 ):
     """
     Search links using FTS5 with unicode61 tokenizer (accent-insensitive).
-    Supports filtering by category and platform.
+    Supports filtering by category, platform, and tags.
+    Tags parameter should be comma-separated: "tag1,tag2"
     """
+    # Parse tags parameter
+    selected_tags = set()
+    if tags:
+        selected_tags = set(t.strip() for t in tags.split(',') if t.strip())
+
     # If no query, return all links
     if not q or not q.strip():
         links_query = db.query(Link)
@@ -77,8 +85,24 @@ def search_links(
         if plataforma:
             links_query = links_query.filter(Link.plataforma == plataforma)
 
-        total = links_query.count()
-        links = links_query.limit(limit).offset(offset).all()
+        # Filter by tags if provided
+        if selected_tags:
+            all_links = links_query.all()
+            filtered_links = []
+            for link in all_links:
+                try:
+                    link_tags = json.loads(link.tags) if link.tags else []
+                    if isinstance(link_tags, list):
+                        link_tags_set = set(link_tags)
+                        if selected_tags.issubset(link_tags_set):
+                            filtered_links.append(link)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            total = len(filtered_links)
+            links = filtered_links[offset:offset + limit]
+        else:
+            total = links_query.count()
+            links = links_query.limit(limit).offset(offset).all()
 
         return {
             "total": total,
@@ -104,8 +128,24 @@ def search_links(
     if plataforma:
         links_query = links_query.filter(Link.plataforma == plataforma)
 
-    total = links_query.count()
-    links = links_query.limit(limit).offset(offset).all()
+    # Filter by tags if provided
+    if selected_tags:
+        all_links = links_query.all()
+        filtered_links = []
+        for link in all_links:
+            try:
+                link_tags = json.loads(link.tags) if link.tags else []
+                if isinstance(link_tags, list):
+                    link_tags_set = set(link_tags)
+                    if selected_tags.issubset(link_tags_set):
+                        filtered_links.append(link)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        total = len(filtered_links)
+        links = filtered_links[offset:offset + limit]
+    else:
+        total = links_query.count()
+        links = links_query.limit(limit).offset(offset).all()
 
     return {
         "total": total,

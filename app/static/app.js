@@ -31,9 +31,13 @@ const nextPageBtn = document.getElementById('next-page-btn');
 const pageInfo = document.getElementById('page-info');
 const categoriesList = document.getElementById('categories-list');
 const categoriesBar = document.querySelector('.categories-bar');
+const tagsList = document.getElementById('tags-list');
+const selectedTagsContainer = document.getElementById('selected-tags');
+const clearTagsBtn = document.getElementById('clear-tags-btn');
 
 let totalResults = 0;
 let categoriesData = {};
+let selectedTags = new Set();
 let editingLinkId = null;
 let confirmCallback = null;
 let suggestionsDropdown = null;
@@ -61,9 +65,13 @@ async function init() {
     loadCategories();
     loadPlatforms();
     loadCategoriesBar();
+    loadTagsBar();
 
     // Categories bar "Todas" button
     document.querySelector('[data-category=""]')?.addEventListener('click', () => selectCategory(''));
+
+    // Clear tags button
+    clearTagsBtn.addEventListener('click', clearAllTags);
 
     // Event listeners
     searchInput.addEventListener('input', handleSearchInput);
@@ -328,6 +336,80 @@ function selectCategory(categoryName) {
     performSearch();
 }
 
+async function loadTagsBar() {
+    try {
+        const response = await fetch(`${API_BASE}/filters/tags-count`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (!data.tags || !Array.isArray(data.tags)) {
+            console.error('Invalid tags-count response:', data);
+            return;
+        }
+
+        tagsList.innerHTML = '';
+        data.tags.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = 'tag-btn';
+            btn.dataset.tag = tag.name;
+            btn.textContent = `🏷️ ${tag.name} (${tag.count})`;
+            btn.addEventListener('click', () => toggleTag(tag.name));
+            tagsList.appendChild(btn);
+        });
+    } catch (e) {
+        console.error('Failed to load tags bar:', e);
+    }
+}
+
+function toggleTag(tagName) {
+    if (selectedTags.has(tagName)) {
+        selectedTags.delete(tagName);
+    } else {
+        selectedTags.add(tagName);
+    }
+
+    updateSelectedTagsDisplay();
+    currentPage = 0;
+    performSearch();
+}
+
+function updateSelectedTagsDisplay() {
+    // Update button states
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        const tagName = btn.dataset.tag;
+        if (selectedTags.has(tagName)) {
+            btn.classList.add('selected');
+        } else {
+            btn.classList.remove('selected');
+        }
+    });
+
+    // Update selected tags container
+    selectedTagsContainer.innerHTML = '';
+    if (selectedTags.size > 0) {
+        clearTagsBtn.style.display = 'inline-block';
+        selectedTags.forEach(tag => {
+            const badge = document.createElement('div');
+            badge.className = 'selected-tag-badge';
+            badge.innerHTML = `
+                ${tag}
+                <span class="remove-tag" data-tag="${tag}">×</span>
+            `;
+            badge.querySelector('.remove-tag').addEventListener('click', () => toggleTag(tag));
+            selectedTagsContainer.appendChild(badge);
+        });
+    } else {
+        clearTagsBtn.style.display = 'none';
+    }
+}
+
+function clearAllTags() {
+    selectedTags.clear();
+    updateSelectedTagsDisplay();
+    currentPage = 0;
+    performSearch();
+}
+
 async function handleSearch() {
     currentSearch = searchInput.value.trim();
     currentCategory = categoryFilter.value;
@@ -353,6 +435,10 @@ async function performSearch() {
         }
         if (currentPlatform) {
             url += `&plataforma=${encodeURIComponent(currentPlatform)}`;
+        }
+        if (selectedTags.size > 0) {
+            const tagsString = Array.from(selectedTags).join(',');
+            url += `&tags=${encodeURIComponent(tagsString)}`;
         }
         if (currentFavoriteFilter) {
             url += `&favorito=true`;
