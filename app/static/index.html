@@ -29,13 +29,16 @@
         </header>
 
         <div class="search-section">
-            <input
-                type="text"
-                id="search-input"
-                class="search-bar"
-                placeholder="Buscar links (ex: SAP, Educação, Python, YouTube, artigo...)..."
-                autocomplete="off"
-            >
+            <div class="search-wrapper">
+                <input
+                    type="text"
+                    id="search-input"
+                    class="search-bar"
+                    placeholder="Buscar links (ex: SAP, Educação, Python, YouTube, artigo...)..."
+                    autocomplete="off"
+                >
+                <button id="clear-search-btn" class="btn-clear-search" title="Limpar busca">✕</button>
+            </div>
             <button id="new-link-btn" class="btn btn-primary">✨ Novo Link</button>
         </div>
 

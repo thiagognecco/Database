@@ -13,6 +13,7 @@ let viewMode = localStorage.getItem('linkViewMode') || 'lista';
 
 // DOM Elements
 const searchInput = document.getElementById('search-input');
+const clearSearchBtn = document.getElementById('clear-search-btn');
 const categoryFilter = document.getElementById('category-filter');
 const platformFilter = document.getElementById('platform-filter');
 const favoritesFilter = document.getElementById('favorites-filter');
@@ -64,6 +65,13 @@ async function init() {
         setTimeout(() => {
             if (suggestionsDropdown) suggestionsDropdown.remove();
         }, 200);
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.focus();
+        if (suggestionsDropdown) suggestionsDropdown.remove();
+        handleSearch();
     });
 
     categoryFilter.addEventListener('change', handleSearch);

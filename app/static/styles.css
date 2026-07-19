@@ -116,10 +116,17 @@ header h1 {
     flex-wrap: wrap;
 }
 
-.search-bar {
+.search-wrapper {
     flex: 1;
     min-width: 250px;
-    padding: 14px 18px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-bar {
+    flex: 1;
+    padding: 14px 40px 14px 18px;
     font-size: 0.95em;
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -137,6 +144,30 @@ header h1 {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
     background-color: var(--bg-white);
+}
+
+.btn-clear-search {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.4em;
+    color: var(--text-light);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: none;
+}
+
+.btn-clear-search:hover {
+    color: var(--primary-color);
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+.search-bar:not(:placeholder-shown) ~ .btn-clear-search,
+.search-bar:focus ~ .btn-clear-search {
+    display: block;
 }
 
 /* Buttons */
