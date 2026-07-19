@@ -118,7 +118,7 @@ async function init() {
     });
 
     // Settings
-    document.querySelector('[href="#settings"]')?.addEventListener('click', (e) => {
+    document.getElementById('settings-header-btn')?.addEventListener('click', (e) => {
         e.preventDefault();
         openSettings();
     });

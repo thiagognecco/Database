@@ -30,54 +30,7 @@ body {
     display: flex;
 }
 
-.sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 260px;
-    height: 100vh;
-    background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-    border-right: 1px solid var(--border-color);
-    padding: 30px 0;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.sidebar-menu {
-    list-style: none;
-}
-
-.sidebar-menu li {
-    margin: 0;
-}
-
-.sidebar-menu a {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 25px;
-    color: var(--text-light);
-    text-decoration: none;
-    font-size: 0.95em;
-    transition: all 0.2s;
-    border-left: 3px solid transparent;
-}
-
-.sidebar-menu a:hover,
-.sidebar-menu a.active {
-    color: var(--primary-color);
-    background-color: rgba(96, 165, 250, 0.08);
-    border-left-color: var(--primary-color);
-}
-
-.sidebar-icon {
-    font-size: 1.3em;
-    width: 30px;
-    text-align: center;
-}
-
 .main-content {
-    margin-left: 260px;
     flex: 1;
     background-color: var(--bg-light);
 }
@@ -93,6 +46,7 @@ header {
     padding: 0 0 30px;
     margin-bottom: 30px;
     border-bottom: 1px solid var(--border-color);
+    position: relative;
 }
 
 header h1 {
@@ -100,6 +54,26 @@ header h1 {
     color: var(--text-dark);
     margin-bottom: 0;
     font-weight: 600;
+}
+
+.btn-settings-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    color: var(--text-dark);
+}
+
+.btn-settings-header:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: var(--primary-color);
+    transform: rotate(20deg);
 }
 
 .network-info {
