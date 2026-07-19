@@ -249,6 +249,111 @@
         </div>
     </div>
 
+    <!-- Modal: Configurações -->
+    <div id="settings-modal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>⚙️ Configurações</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body settings-body">
+                <!-- Preferências -->
+                <div class="settings-section">
+                    <h3>🎨 Preferências</h3>
+                    <div class="settings-item">
+                        <label class="settings-checkbox">
+                            <input type="checkbox" id="dark-mode-toggle">
+                            Modo Escuro
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <label for="view-mode-select">Modo de Visualização:</label>
+                        <select id="view-mode-select" class="filter-select">
+                            <option value="grid">📊 Grade (Cards)</option>
+                            <option value="lista">📋 Lista</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <label for="summary-mode-select">Resumo nos Cards:</label>
+                        <select id="summary-mode-select" class="filter-select">
+                            <option value="completo">📄 Completo</option>
+                            <option value="curto">📝 Curto</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Dados & Backup -->
+                <div class="settings-section">
+                    <h3>💾 Dados & Backup</h3>
+                    <div class="settings-item">
+                        <button class="btn btn-secondary" onclick="document.getElementById('settings-import-file').click();">📥 Importar CSV</button>
+                        <input type="file" id="settings-import-file" accept=".csv" style="display: none;">
+                    </div>
+                    <div class="settings-item">
+                        <button class="btn btn-secondary" id="export-csv-settings">📤 Exportar CSV</button>
+                        <button class="btn btn-secondary" id="export-xlsx-settings">📤 Exportar XLSX</button>
+                    </div>
+                    <div class="settings-item">
+                        <button class="btn btn-secondary" id="github-backup-settings">☁️ Backup GitHub</button>
+                        <span id="github-backup-settings-status" class="backup-status"></span>
+                    </div>
+                </div>
+
+                <!-- Estatísticas -->
+                <div class="settings-section">
+                    <h3>📊 Estatísticas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Total de Links</div>
+                            <div class="stat-value" id="stat-total">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Categorias</div>
+                            <div class="stat-value" id="stat-categories">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Tags</div>
+                            <div class="stat-value" id="stat-tags">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Favoritos</div>
+                            <div class="stat-value" id="stat-favorites">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API & Avançado -->
+                <div class="settings-section">
+                    <h3>🔑 API & Avançado</h3>
+                    <div class="settings-item">
+                        <label>API Key:</label>
+                        <div class="api-key-display">
+                            <span id="api-key-masked">sk-***</span>
+                            <button class="btn btn-small" id="regenerate-api-key">🔄 Regenerar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sobre -->
+                <div class="settings-section">
+                    <h3>ℹ️ Sobre</h3>
+                    <div class="settings-item">
+                        <span>Versão: <strong>2.0</strong></span>
+                    </div>
+                    <div class="settings-item">
+                        <span>Custo: <strong>$10/mês</strong> (Anthropic IA)</span>
+                    </div>
+                    <div class="settings-item">
+                        <span>Status: <strong style="color: #10b981;">✅ Ativo</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="close-settings-btn" class="btn btn-primary">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal: Detalhes Completos do Link -->
     <div id="link-detail-modal" class="link-detail-modal">
         <div class="link-detail-content">

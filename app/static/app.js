@@ -110,6 +110,12 @@ async function init() {
         renderFavoritesData();
     });
 
+    // Settings
+    document.querySelector('[href="#settings"]')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openSettings();
+    });
+
     newLinkBtn.addEventListener('click', openNewLinkModal);
     prevPageBtn.addEventListener('click', () => previousPage());
     nextPageBtn.addEventListener('click', () => nextPage());
@@ -521,6 +527,53 @@ function renderFavoritesData() {
 
     renderLinks(sorted);
     resultsCount.textContent = `${sorted.length} link${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`;
+}
+
+async function openSettings() {
+    const settingsModal = document.getElementById('settings-modal');
+    settingsModal.style.display = 'flex';
+
+    // Load statistics
+    try {
+        const stats = await fetch(`${API_BASE}/search/stats`).then(r => r.json());
+        document.getElementById('stat-total').textContent = stats.total_links || 0;
+        document.getElementById('stat-categories').textContent = stats.total_categorias || 0;
+        document.getElementById('stat-tags').textContent = '0'; // TODO: Get from API
+        document.getElementById('stat-favorites').textContent = stats.total_favoritos || 0;
+    } catch (e) {
+        console.error('Failed to load stats:', e);
+    }
+
+    // Set current view mode
+    document.getElementById('view-mode-select').value = viewMode;
+
+    // Settings close button
+    document.getElementById('close-settings-btn').addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+    });
+
+    // Export buttons in settings
+    document.getElementById('export-csv-settings')?.addEventListener('click', () => exportLinks('csv'));
+    document.getElementById('export-xlsx-settings')?.addEventListener('click', () => exportLinks('xlsx'));
+    document.getElementById('github-backup-settings')?.addEventListener('click', handleGitHubBackup);
+
+    // Import file
+    document.getElementById('settings-import-file')?.addEventListener('change', handleImport);
+
+    // View mode change
+    document.getElementById('view-mode-select')?.addEventListener('change', (e) => {
+        viewMode = e.target.value;
+        localStorage.setItem('linkViewMode', viewMode);
+        renderLinks(linksContainer.innerHTML === '' ? [] : document.querySelectorAll('.link-card, .link-list-item'));
+    });
+
+    // Dark mode toggle
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
+    darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
+    darkModeToggle?.addEventListener('change', toggleDarkMode);
+
+    // API Key
+    document.getElementById('regenerate-api-key')?.addEventListener('click', regenerateApiKey);
 }
 
 async function handleSearch() {
@@ -1272,4 +1325,15 @@ function addLinkCardClickHandler(card, link) {
             showLinkDetail(link);
         }
     });
+}
+
+function toggleDarkMode() {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode);
+    showSuccess(isDarkMode ? '🌙 Modo Escuro ativado' : '☀️ Modo Claro ativado');
+}
+
+function regenerateApiKey() {
+    // TODO: Implement API key regeneration
+    showToast('🔄 Regenerar API Key - Função em desenvolvimento', 'info');
 }
