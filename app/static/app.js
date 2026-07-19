@@ -164,7 +164,11 @@ async function sendAIChatMessage() {
         // Add AI response
         const aiMsgEl = document.createElement('div');
         aiMsgEl.className = 'ai-message';
-        aiMsgEl.innerHTML = `<div class="message-content">${data.response.replace(/\n/g, '<br>')}</div>`;
+        let costText = '';
+        if (data.usage && data.usage.cost_usd > 0) {
+            costText = ` <small style="opacity: 0.7; font-size: 0.8em;">💵 $${data.usage.cost_usd.toFixed(4)}</small>`;
+        }
+        aiMsgEl.innerHTML = `<div class="message-content">${data.response.replace(/\n/g, '<br>')}${costText}</div>`;
         messagesContainer.appendChild(aiMsgEl);
 
         // Add links if available
@@ -183,6 +187,9 @@ async function sendAIChatMessage() {
             messagesContainer.appendChild(linksEl);
         }
 
+        // Update stats counter
+        loadAICostStats();
+
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     } catch (e) {
         const errorEl = document.createElement('div');
@@ -192,6 +199,27 @@ async function sendAIChatMessage() {
     } finally {
         sendBtn.disabled = false;
         sendBtn.textContent = 'Enviar';
+    }
+}
+
+async function loadAICostStats() {
+    try {
+        const response = await fetch(`${API_BASE}/ai/stats`);
+        if (!response.ok) return;
+
+        const stats = await response.json();
+
+        // Update settings panel if visible
+        const statAICostEl = document.getElementById('stat-ai-cost');
+        const statAIChatEl = document.getElementById('stat-ai-chats');
+        if (statAICostEl) {
+            statAICostEl.textContent = `$${stats.total.cost_usd.toFixed(2)}`;
+        }
+        if (statAIChatEl) {
+            statAIChatEl.textContent = stats.total.chats;
+        }
+    } catch (e) {
+        console.log('Error loading AI stats:', e);
     }
 }
 
@@ -724,6 +752,20 @@ async function openSettings() {
         document.getElementById('stat-favorites').textContent = stats.total_favoritos || 0;
     } catch (e) {
         console.error('Failed to load stats:', e);
+    }
+
+    // Load AI usage statistics
+    try {
+        const aiStats = await fetch(`${API_BASE}/ai/stats`).then(r => r.json());
+        const totalChats = aiStats.total.chats;
+        const totalCost = aiStats.total.cost_usd;
+        const avgCost = totalChats > 0 ? (totalCost / totalChats).toFixed(4) : 0;
+
+        document.getElementById('stat-ai-chats').textContent = totalChats;
+        document.getElementById('stat-ai-cost').textContent = `$${totalCost.toFixed(2)}`;
+        document.getElementById('stat-ai-avg').textContent = `$${avgCost}`;
+    } catch (e) {
+        console.log('Failed to load AI stats:', e);
     }
 
     // Set current view mode

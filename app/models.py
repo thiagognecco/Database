@@ -1,6 +1,6 @@
 """SQLAlchemy models for links database."""
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Index
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Index, Float
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -64,3 +64,19 @@ class Link(Base):
             "criado_em": self.criado_em.isoformat() if self.criado_em else None,
             "atualizado_em": self.atualizado_em.isoformat() if self.atualizado_em else None,
         }
+
+
+class AIUsageLog(Base):
+    """Log de uso da IA e custos."""
+    __tablename__ = "ai_usage_log"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mensagem = Column(Text, nullable=False)
+    input_tokens = Column(Integer, default=0)
+    output_tokens = Column(Integer, default=0)
+    custo_usd = Column(Float, default=0.0)
+    criado_em = Column(DateTime, default=datetime.utcnow, index=True)
+
+    __table_args__ = (
+        Index("idx_criado_em", "criado_em"),
+    )

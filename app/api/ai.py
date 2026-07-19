@@ -5,8 +5,10 @@ from sqlalchemy import and_, or_
 from pydantic import BaseModel
 import os
 import anthropic
+from datetime import datetime, timedelta
 
-from app.database import get_db, Link
+from app.database import get_db
+from app.models import Link, AIUsageLog
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -89,7 +91,25 @@ Mantenha as respostas concisas mas completas (2-3 parágrafos)."""
 
         ai_response = message.content[0].text
 
-        # Return response with links
+        # Extract token usage
+        input_tokens = message.usage.input_tokens
+        output_tokens = message.usage.output_tokens
+
+        # Calculate cost (Claude Opus 4.1)
+        # Input: $3 per 1M tokens, Output: $15 per 1M tokens
+        cost = (input_tokens * 0.000003) + (output_tokens * 0.000015)
+
+        # Log usage
+        usage_log = AIUsageLog(
+            mensagem=request.message[:500],
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            custo_usd=round(cost, 6)
+        )
+        db.add(usage_log)
+        db.commit()
+
+        # Return response with links and cost
         return {
             "response": ai_response,
             "links": [
@@ -102,8 +122,58 @@ Mantenha as respostas concisas mas completas (2-3 parágrafos)."""
                     "resumo": link.resumo
                 }
                 for link in relevant_links
-            ]
+            ],
+            "usage": {
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "cost_usd": round(cost, 6)
+            }
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na IA: {str(e)}")
+
+
+@router.get("/stats")
+def get_ai_stats(db: Session = Depends(get_db)):
+    """Get AI usage statistics and costs."""
+
+    # Total stats
+    total = db.query(AIUsageLog).all()
+    total_cost = sum(log.custo_usd for log in total)
+    total_tokens = sum(log.input_tokens + log.output_tokens for log in total)
+
+    # Today's stats
+    today = datetime.utcnow().date()
+    today_logs = db.query(AIUsageLog).filter(
+        AIUsageLog.criado_em >= datetime.combine(today, datetime.min.time())
+    ).all()
+    today_cost = sum(log.custo_usd for log in today_logs)
+    today_chats = len(today_logs)
+
+    # This month's stats
+    now = datetime.utcnow()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    month_logs = db.query(AIUsageLog).filter(
+        AIUsageLog.criado_em >= month_start
+    ).all()
+    month_cost = sum(log.custo_usd for log in month_logs)
+    month_chats = len(month_logs)
+
+    return {
+        "today": {
+            "chats": today_chats,
+            "cost_usd": round(today_cost, 4),
+            "tokens": sum(log.input_tokens + log.output_tokens for log in today_logs)
+        },
+        "month": {
+            "chats": month_chats,
+            "cost_usd": round(month_cost, 4),
+            "tokens": sum(log.input_tokens + log.output_tokens for log in month_logs)
+        },
+        "total": {
+            "chats": len(total),
+            "cost_usd": round(total_cost, 4),
+            "tokens": total_tokens
+        }
+    }
