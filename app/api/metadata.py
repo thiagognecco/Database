@@ -8,6 +8,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from app.schemas import URLExtract
+from app.ai_service import refine_metadata_pt
 
 router = APIRouter(prefix="/api/metadata", tags=["metadata"])
 
@@ -113,6 +114,17 @@ async def extract_from_url(request: URLExtract):
         raise HTTPException(status_code=400, detail="URL não pode estar vazia")
 
     metadata = await extract_metadata(url)
+
+    # Refine scraped metadata into natural Portuguese
+    if metadata.get("titulo") or metadata.get("resumo"):
+        refined = await refine_metadata_pt(
+            metadata.get("titulo") or "",
+            metadata.get("resumo") or "",
+            url
+        )
+        metadata["titulo"] = refined.get("titulo") or metadata.get("titulo")
+        metadata["resumo"] = refined.get("resumo") or metadata.get("resumo")
+
     return {
         "url": url,
         **metadata,

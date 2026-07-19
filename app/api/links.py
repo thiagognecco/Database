@@ -192,8 +192,8 @@ async def analyze_link_with_ai(link_id: int, db: Session = Depends(get_db)):
         link.tema = ai_result.get("tema")
         link.confiabilidade = ai_result.get("confiabilidade")
 
-        # Generate summary if empty
-        if not link.resumo and link.titulo:
+        # Generate/refresh summary in Portuguese
+        if link.titulo:
             link.resumo = await generate_summary_with_ai(link.titulo, link.url)
 
         link.atualizado_em = datetime.utcnow()
