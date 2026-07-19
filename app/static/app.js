@@ -8,6 +8,9 @@ let currentCategory = '';
 let currentPlatform = '';
 let currentFavoriteFilter = false;
 
+// Modo de visualização (cards ou lista)
+let viewMode = localStorage.getItem('linkViewMode') || 'cards';
+
 // DOM Elements
 const searchInput = document.getElementById('search-input');
 const categoryFilter = document.getElementById('category-filter');
@@ -316,10 +319,22 @@ function renderLinks(links) {
 
     emptyStateEl.style.display = 'none';
 
-    links.forEach(link => {
-        const card = createLinkCard(link);
-        linksContainer.appendChild(card);
-    });
+    // Renderizar baseado no modo de visualização
+    if (viewMode === 'lista') {
+        linksContainer.classList.add('links-list-mode');
+        linksContainer.classList.remove('links-grid');
+        links.forEach(link => {
+            const item = createLinkListItem(link);
+            linksContainer.appendChild(item);
+        });
+    } else {
+        linksContainer.classList.add('links-grid');
+        linksContainer.classList.remove('links-list-mode');
+        links.forEach(link => {
+            const card = createLinkCard(link);
+            linksContainer.appendChild(card);
+        });
+    }
 }
 
 function createLinkCard(link) {
@@ -378,14 +393,55 @@ function createLinkCard(link) {
 
     // Adicionar handler de clique para mostrar detalhes
     addLinkCardClickHandler(card, link);
-        e.preventDefault();
-        toggleFavorite(link.id);
-    });
-
-    // Adicionar handler de clique para mostrar detalhes
-    addLinkCardClickHandler(card, link);
 
     return card;
+}
+
+// Nova função para renderizar item da lista (2 linhas compacto)
+function createLinkListItem(link) {
+    const item = document.createElement('div');
+    item.className = 'link-list-item';
+
+    const platform = link.plataforma || 'Link';
+    const dateShort = link.data ? new Date(link.data).toLocaleDateString('pt-BR', { month: '2-digit', day: '2-digit' }) : '';
+    const tags = [];
+    if (link.categoria) tags.push(link.categoria);
+    if (link.tema) tags.push(link.tema);
+
+    item.innerHTML = `
+        <div class="list-linha1">
+            <a href="${escapeHtml(link.url)}" class="list-titulo" target="_blank">${escapeHtml(link.titulo || link.url)}</a>
+            <div class="list-direita-l1">
+                <span class="list-platform">${escapeHtml(platform)}</span>
+                <span class="list-data">${dateShort}</span>
+                <div class="list-btns">
+                    <button class="btn-list-edit" data-link-id="${link.id}" title="Editar">✏️</button>
+                    <button class="btn-list-del" data-link-id="${link.id}" title="Deletar">🗑️</button>
+                </div>
+            </div>
+        </div>
+        <div class="list-linha2">
+            <div class="list-resumo">${escapeHtml(link.resumo || '')}</div>
+            <div class="list-tags">
+                ${tags.map(tag => `<span class="list-tag">${escapeHtml(tag)}</span>`).join('')}
+            </div>
+        </div>
+    `;
+
+    // Event listeners
+    item.querySelector('.btn-list-edit').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditLink(link.id);
+    });
+
+    item.querySelector('.btn-list-del').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteLink(link.id);
+    });
+
+    return item;
 }
 
 function updatePagination() {
@@ -764,6 +820,21 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Função para alternar entre modo cards e lista
+function toggleViewMode() {
+    viewMode = viewMode === 'cards' ? 'lista' : 'cards';
+    localStorage.setItem('linkViewMode', viewMode);
+
+    // Atualizar botão de toggle
+    const toggleBtn = document.getElementById('view-mode-toggle');
+    if (toggleBtn) {
+        toggleBtn.textContent = viewMode === 'cards' ? '📋 Modo Lista' : '🎴 Modo Cards';
+    }
+
+    // Re-renderizar links
+    performSearch();
 }
 
 // ===== NOVAS FUNCIONALIDADES =====
