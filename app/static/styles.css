@@ -739,7 +739,11 @@ footer {
 
 /* Atalhos Rápidos */
 .quick-shortcuts {
-    display: none;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding: 12px 0;
 }
 
 .shortcut-btn {
