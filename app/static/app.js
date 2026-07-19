@@ -11,29 +11,12 @@ let currentFavoriteFilter = false;
 // Modo de visualização (cards ou lista) - padrão lista para mostrar layout compacto
 let viewMode = localStorage.getItem('linkViewMode') || 'lista';
 
-// DOM Elements
-const searchInput = document.getElementById('search-input');
-const clearSearchBtn = document.getElementById('clear-search-btn');
-const categoryFilter = document.getElementById('category-filter');
-const platformFilter = document.getElementById('platform-filter');
-const favoritesFilter = document.getElementById('favorites-filter');
-const linksContainer = document.getElementById('links-container');
-const loadingEl = document.getElementById('loading');
-const emptyStateEl = document.getElementById('empty-state');
-const resultsCount = document.getElementById('results-count');
-const newLinkBtn = document.getElementById('new-link-btn');
-const newLinkModal = document.getElementById('new-link-modal');
-const editLinkModal = document.getElementById('edit-link-modal');
-const confirmModal = document.getElementById('confirm-modal');
-const paginationEl = document.getElementById('pagination');
-const prevPageBtn = document.getElementById('prev-page-btn');
-const nextPageBtn = document.getElementById('next-page-btn');
-const pageInfo = document.getElementById('page-info');
-const categoriesList = document.getElementById('categories-list');
-const categoriesBar = document.querySelector('.categories-bar');
-const tagsList = document.getElementById('tags-list');
-const selectedTagsContainer = document.getElementById('selected-tags');
-const clearTagsBtn = document.getElementById('clear-tags-btn');
+// DOM Elements - inicializadas em init()
+let searchInput, clearSearchBtn, categoryFilter, platformFilter, favoritesFilter;
+let linksContainer, loadingEl, emptyStateEl, resultsCount, newLinkBtn;
+let newLinkModal, editLinkModal, confirmModal, paginationEl;
+let prevPageBtn, nextPageBtn, pageInfo;
+let categoriesList, categoriesBar, tagsList, selectedTagsContainer, clearTagsBtn;
 
 let totalResults = 0;
 let categoriesData = {};
@@ -51,6 +34,30 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function init() {
+    // Initialize DOM Elements
+    searchInput = document.getElementById('search-input');
+    clearSearchBtn = document.getElementById('clear-search-btn');
+    categoryFilter = document.getElementById('category-filter');
+    platformFilter = document.getElementById('platform-filter');
+    favoritesFilter = document.getElementById('favorites-filter');
+    linksContainer = document.getElementById('links-container');
+    loadingEl = document.getElementById('loading');
+    emptyStateEl = document.getElementById('empty-state');
+    resultsCount = document.getElementById('results-count');
+    newLinkBtn = document.getElementById('new-link-btn');
+    newLinkModal = document.getElementById('new-link-modal');
+    editLinkModal = document.getElementById('edit-link-modal');
+    confirmModal = document.getElementById('confirm-modal');
+    paginationEl = document.getElementById('pagination');
+    prevPageBtn = document.getElementById('prev-page-btn');
+    nextPageBtn = document.getElementById('next-page-btn');
+    pageInfo = document.getElementById('page-info');
+    categoriesList = document.getElementById('categories-list');
+    categoriesBar = document.querySelector('.categories-bar');
+    tagsList = document.getElementById('tags-list');
+    selectedTagsContainer = document.getElementById('selected-tags');
+    clearTagsBtn = document.getElementById('clear-tags-btn');
+
     // Display network info
     try {
         const response = await fetch(`${API_BASE}/health`);
