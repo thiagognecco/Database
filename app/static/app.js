@@ -90,6 +90,111 @@ function registerServiceWorker() {
     }
 }
 
+// AI Chat Functions
+let aiChatOpen = false;
+
+function initAIChat() {
+    const chatBubbleBtn = document.getElementById('chat-bubble-btn');
+    const closeBtn = document.getElementById('close-chat-btn');
+    const chatInput = document.getElementById('ai-chat-input');
+    const sendBtn = document.getElementById('ai-send-btn');
+    const chatModal = document.getElementById('ai-chat-modal');
+
+    chatBubbleBtn.addEventListener('click', toggleAIChat);
+    closeBtn.addEventListener('click', closeAIChat);
+    sendBtn.addEventListener('click', sendAIChatMessage);
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendAIChatMessage();
+        }
+    });
+}
+
+function toggleAIChat() {
+    const modal = document.getElementById('ai-chat-modal');
+    if (aiChatOpen) {
+        closeAIChat();
+    } else {
+        modal.style.display = 'block';
+        aiChatOpen = true;
+        document.getElementById('ai-chat-input').focus();
+    }
+}
+
+function closeAIChat() {
+    document.getElementById('ai-chat-modal').style.display = 'none';
+    aiChatOpen = false;
+}
+
+async function sendAIChatMessage() {
+    const input = document.getElementById('ai-chat-input');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    const messagesContainer = document.getElementById('ai-chat-messages');
+    const sendBtn = document.getElementById('ai-send-btn');
+
+    // Add user message
+    const userMsgEl = document.createElement('div');
+    userMsgEl.className = 'user-message';
+    userMsgEl.innerHTML = `<div class="message-content">${escapeHtml(message)}</div>`;
+    messagesContainer.appendChild(userMsgEl);
+
+    // Clear input and disable send
+    input.value = '';
+    sendBtn.disabled = true;
+    sendBtn.textContent = '⏳ Pensando...';
+
+    // Scroll to bottom
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    try {
+        const response = await fetch(`${API_BASE}/ai/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, limit: 5 })
+        });
+
+        if (!response.ok) throw new Error('Erro ao enviar mensagem');
+
+        const data = await response.json();
+
+        // Add AI response
+        const aiMsgEl = document.createElement('div');
+        aiMsgEl.className = 'ai-message';
+        aiMsgEl.innerHTML = `<div class="message-content">${data.response.replace(/\n/g, '<br>')}</div>`;
+        messagesContainer.appendChild(aiMsgEl);
+
+        // Add links if available
+        if (data.links && data.links.length > 0) {
+            const linksEl = document.createElement('div');
+            linksEl.className = 'ai-message';
+            linksEl.innerHTML = `<div class="message-content">
+                <strong>📎 Links relacionados:</strong><br>
+                ${data.links.map(link => `
+                    <div style="margin-top: 8px; padding: 8px; background: rgba(99, 102, 241, 0.1); border-radius: 4px;">
+                        <strong>${escapeHtml(link.titulo)}</strong><br>
+                        <small>${escapeHtml(link.categoria)} | ${escapeHtml(link.plataforma)}</small>
+                    </div>
+                `).join('')}
+            </div>`;
+            messagesContainer.appendChild(linksEl);
+        }
+
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } catch (e) {
+        const errorEl = document.createElement('div');
+        errorEl.className = 'ai-message';
+        errorEl.innerHTML = `<div class="message-content">❌ ${e.message}</div>`;
+        messagesContainer.appendChild(errorEl);
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Enviar';
+    }
+}
+
 async function init() {
     // Apply dark mode if saved
     if (localStorage.getItem('darkMode') === 'true') {
@@ -225,6 +330,9 @@ async function init() {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    // Initialize AI Chat
+    initAIChat();
 
     // Initial search
     handleSearch();

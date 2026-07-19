@@ -409,5 +409,35 @@
     <script src="/static/app.js?v=5"></script>
         </div>
     </div>
+
+    <!-- AI Chat Bubble -->
+    <div id="ai-chat-bubble" class="ai-chat-bubble" title="Assistente IA">
+        <button id="chat-bubble-btn" class="chat-bubble-btn">💬</button>
+    </div>
+
+    <!-- AI Chat Modal -->
+    <div id="ai-chat-modal" class="ai-chat-modal" style="display: none;">
+        <div class="ai-chat-container">
+            <div class="ai-chat-header">
+                <h3>🤖 Assistente IA</h3>
+                <button id="close-chat-btn" class="close-chat-btn">×</button>
+            </div>
+            <div id="ai-chat-messages" class="ai-chat-messages">
+                <div class="ai-message">
+                    <div class="message-content">Olá! Sou seu assistente IA. Posso ajudar a encontrar links relevantes sobre qualquer assunto. Faça uma pergunta! 👋</div>
+                </div>
+            </div>
+            <div class="ai-chat-input-area">
+                <input
+                    type="text"
+                    id="ai-chat-input"
+                    class="ai-chat-input"
+                    placeholder="Pergunte-me sobre seus links..."
+                    autocomplete="off"
+                >
+                <button id="ai-send-btn" class="btn btn-primary btn-send">Enviar</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
