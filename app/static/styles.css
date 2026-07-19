@@ -16,6 +16,23 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* Dark Mode Theme */
+body.dark-mode {
+    --primary-color: #818cf8;
+    --primary-dark: #6366f1;
+    --secondary-color: #a78bfa;
+    --success-color: #34d399;
+    --danger-color: #f87171;
+    --border-color: #374151;
+    --bg-light: #111827;
+    --bg-white: #1f2937;
+    --bg-card: #2d3748;
+    --text-dark: #f3f4f6;
+    --text-light: #d1d5db;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
 * {
     margin: 0;
     padding: 0;

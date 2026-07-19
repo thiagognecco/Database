@@ -3,6 +3,50 @@
 const API_BASE = '/api';
 let currentPage = 0;
 const ITEMS_PER_PAGE = 12;
+
+// Broadcast Channel for real-time sync between tabs
+let broadcastChannel = null;
+
+function initBroadcastChannel() {
+    if ('BroadcastChannel' in window) {
+        try {
+            broadcastChannel = new BroadcastChannel('banco-links-sync');
+            broadcastChannel.addEventListener('message', handleBroadcastMessage);
+            console.log('Broadcast Channel initialized');
+        } catch (e) {
+            console.log('Broadcast Channel not supported:', e);
+        }
+    }
+}
+
+function handleBroadcastMessage(event) {
+    const { type, data } = event.data;
+
+    switch(type) {
+        case 'link-added':
+            showToast('✨ Novo link adicionado em outra aba', 'info');
+            handleSearch();
+            break;
+        case 'link-updated':
+            showToast('📝 Link atualizado em outra aba', 'info');
+            handleSearch();
+            break;
+        case 'link-deleted':
+            showToast('🗑️ Link removido em outra aba', 'info');
+            handleSearch();
+            break;
+        case 'favorite-toggled':
+            showToast('⭐ Favorito atualizado em outra aba', 'info');
+            handleSearch();
+            break;
+    }
+}
+
+function broadcastEvent(type, data) {
+    if (broadcastChannel) {
+        broadcastChannel.postMessage({ type, data, timestamp: Date.now() });
+    }
+}
 let currentSearch = '';
 let currentCategory = '';
 let currentPlatform = '';
@@ -31,9 +75,30 @@ let suggestionsDropdown = null;
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     init();
+    registerServiceWorker();
 });
 
+function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/static/service-worker.js')
+            .then(registration => {
+                console.log('Service Worker registered:', registration);
+            })
+            .catch(error => {
+                console.log('Service Worker registration failed:', error);
+            });
+    }
+}
+
 async function init() {
+    // Apply dark mode if saved
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Initialize Broadcast Channel for real-time sync
+    initBroadcastChannel();
+
     // Initialize DOM Elements
     searchInput = document.getElementById('search-input');
     clearSearchBtn = document.getElementById('clear-search-btn');
@@ -967,6 +1032,9 @@ async function saveNewLink() {
         // Small delay to ensure database is updated
         await new Promise(r => setTimeout(r, 200));
 
+        // Broadcast to other tabs
+        broadcastEvent('link-added', newLink);
+
         // Reset to page 0 to show new link
         currentPage = 0;
         handleSearch();
@@ -1030,6 +1098,7 @@ async function saveEditLink() {
         if (!response.ok) throw new Error('Erro ao atualizar');
 
         closeAllModals();
+        broadcastEvent('link-updated', { id: editingLinkId });
         handleSearch();
 
     } catch (e) {
@@ -1107,6 +1176,7 @@ async function deleteLink(linkId) {
         try {
             const response = await fetch(`${API_BASE}/links/${linkId}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Erro ao deletar');
+            broadcastEvent('link-deleted', { id: linkId });
             handleSearch();
         } catch (e) {
             showError(`Erro ao deletar link: ${e.message}`);
@@ -1124,6 +1194,8 @@ async function toggleFavorite(linkId) {
 
         const result = await response.json();
         console.log(`⭐ Favorito atualizado para ${result.favorito}`);
+
+        broadcastEvent('favorite-toggled', { id: linkId, favorito: result.favorito });
 
         // BUG FIX: Reload to show updated state
         performSearch();
@@ -1343,8 +1415,19 @@ function toggleDarkMode() {
 }
 
 function regenerateApiKey() {
-    // TODO: Implement API key regeneration
-    showToast('🔄 Regenerar API Key - Função em desenvolvimento', 'info');
+    const message = `
+🔑 Para regenerar sua API Key do Anthropic:
+
+1. Acesse: https://console.anthropic.com/account/keys
+2. Faça login com sua conta
+3. Clique em "Regenerate" perto de sua chave atual
+4. Copie a nova chave (sk-...)
+5. Adicione ao seu .env ou configure no Railway:
+   ANTHROPIC_API_KEY=sua_nova_chave
+
+ℹ️ A chave regenerada invalida todas as anteriores.
+    `;
+    showToast(message, 'info');
 }
 
 function handleKeyboardShortcuts(e) {
