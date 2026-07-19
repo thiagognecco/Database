@@ -91,6 +91,7 @@ async function init() {
     // Edit link modal
     document.getElementById('save-edit-btn').addEventListener('click', saveEditLink);
     document.getElementById('cancel-edit-btn').addEventListener('click', closeAllModals);
+    document.getElementById('analyze-ai-btn').addEventListener('click', analyzeWithAI);
 
     // Confirm modal
     document.getElementById('confirm-cancel-btn').addEventListener('click', closeAllModals);
@@ -351,12 +352,32 @@ function createLinkCard(link) {
         </div>
         <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
         <div class="card-actions">
-            <button class="btn btn-small" onclick="openEditLink(${link.id})">✏️ Editar</button>
-            <button class="btn btn-small btn-secondary" onclick="deleteLink(${link.id})">🗑️ Deletar</button>
+            <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
+            <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
         </div>
     `;
 
+    // Event listeners para favoritar
     card.querySelector('.star-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleFavorite(link.id);
+    });
+
+    // Event listeners para editar e deletar
+    card.querySelector('.btn-edit').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openEditLink(link.id);
+    });
+
+    card.querySelector('.btn-delete').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteLink(link.id);
+    });
+
+    // Adicionar handler de clique para mostrar detalhes
+    addLinkCardClickHandler(card, link);
         e.preventDefault();
         toggleFavorite(link.id);
     });
@@ -610,6 +631,38 @@ async function saveEditLink() {
 
     } catch (e) {
         showError(`Erro ao atualizar link: ${e.message}`);
+    }
+}
+
+async function analyzeWithAI() {
+    if (!editingLinkId) return;
+
+    const statusEl = document.getElementById('analyze-ai-status');
+    statusEl.textContent = '⏳ Analisando com IA...';
+    statusEl.className = 'form-status loading';
+
+    try {
+        const response = await fetch(`${API_BASE}/links/${editingLinkId}/analyze-with-ai`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error('Erro ao analisar');
+
+        const result = await response.json();
+        const link = result.link;
+
+        // Atualizar campos com dados da IA
+        if (link.categoria) document.getElementById('edit-categoria').value = link.categoria;
+        if (link.tema) document.getElementById('edit-tema').value = link.tema;
+        if (link.resumo) document.getElementById('edit-resumo').value = link.resumo;
+
+        statusEl.textContent = '✅ Link analisado com sucesso!';
+        statusEl.className = 'form-status success';
+
+    } catch (e) {
+        statusEl.textContent = `❌ Erro ao analisar: ${e.message}`;
+        statusEl.className = 'form-status error';
     }
 }
 

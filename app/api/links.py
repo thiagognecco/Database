@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.models import Link
 from app.database import get_db
 from app.schemas import LinkCreate, LinkUpdate
+from app.ai_service import categorize_link, generate_summary_with_ai
 
 router = APIRouter(prefix="/api/links", tags=["links"])
 
@@ -54,8 +55,8 @@ def get_link(link_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("")
-def create_link(link: LinkCreate, db: Session = Depends(get_db)):
-    """Create a new link."""
+async def create_link(link: LinkCreate, db: Session = Depends(get_db)):
+    """Create a new link with AI-powered auto-categorization and summary generation."""
     # Check if URL already exists
     existing = db.query(Link).filter(Link.url == link.url).first()
     if existing:
@@ -69,16 +70,43 @@ def create_link(link: LinkCreate, db: Session = Depends(get_db)):
         except ValueError:
             raise HTTPException(status_code=400, detail="Data em formato ISO inválido")
 
+    # Use AI to auto-categorize if not provided
+    categoria = link.categoria
+    tema = link.tema
+    confiabilidade = link.confiabilidade
+
+    if not categoria or not tema:
+        try:
+            ai_result = await categorize_link(link.url, link.titulo or "", link.resumo or "")
+            if not categoria:
+                categoria = ai_result.get("categoria")
+            if not tema:
+                tema = ai_result.get("tema")
+            if not confiabilidade:
+                confiabilidade = ai_result.get("confiabilidade")
+        except Exception as e:
+            import logging
+            logging.warning(f"AI categorization failed: {e}")
+
+    # Generate summary with AI if not provided
+    resumo = link.resumo
+    if not resumo and link.titulo:
+        try:
+            resumo = await generate_summary_with_ai(link.titulo, link.url)
+        except Exception as e:
+            import logging
+            logging.warning(f"AI summary generation failed: {e}")
+
     new_link = Link(
         url=link.url,
         titulo=link.titulo,
-        resumo=link.resumo,
+        resumo=resumo,
         autor=link.autor,
         data=link_data,
         plataforma=link.plataforma,
-        categoria=link.categoria,
-        tema=link.tema,
-        confiabilidade=link.confiabilidade,
+        categoria=categoria,
+        tema=tema,
+        confiabilidade=confiabilidade,
         bot=link.bot,
     )
 
@@ -147,8 +175,40 @@ def toggle_favorite(link_id: int, db: Session = Depends(get_db)):
     link.atualizado_em = datetime.utcnow()
     db.commit()
     db.refresh(link)
+    return link.to_dict()
 
-    return {"favorito": link.favorito}
+
+@router.post("/{link_id:int}/analyze-with-ai")
+async def analyze_link_with_ai(link_id: int, db: Session = Depends(get_db)):
+    """Analyze and enhance a link with AI (auto-categorize and generate summary)."""
+    link = db.query(Link).filter(Link.id == link_id).first()
+    if not link:
+        raise HTTPException(status_code=404, detail="Link não encontrado")
+
+    try:
+        # Auto-categorize
+        ai_result = await categorize_link(link.url, link.titulo or "", link.resumo or "")
+        link.categoria = ai_result.get("categoria")
+        link.tema = ai_result.get("tema")
+        link.confiabilidade = ai_result.get("confiabilidade")
+
+        # Generate summary if empty
+        if not link.resumo and link.titulo:
+            link.resumo = await generate_summary_with_ai(link.titulo, link.url)
+
+        link.atualizado_em = datetime.utcnow()
+        db.commit()
+        db.refresh(link)
+
+        return {
+            "message": "Link analisado com sucesso",
+            "link": link.to_dict()
+        }
+
+    except Exception as e:
+        import logging
+        logging.error(f"AI analysis failed: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao analisar link com IA")
 
 
 @router.get("/favoritos")

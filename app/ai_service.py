@@ -126,3 +126,34 @@ Respond with JSON:
             "titulo": url.split("/")[-1] or url.split("//")[-1],
             "resumo": "Link adicionado"
         }
+
+
+async def generate_summary_with_ai(titulo: str, url: str) -> str:
+    """
+    Generate a better summary using Claude based on title and URL.
+    """
+    if not titulo or not url:
+        return ""
+
+    prompt = f"""Based on this title and URL, generate a concise 1-2 sentence summary that describes what the user will find.
+
+Title: {titulo}
+URL: {url}
+
+Respond ONLY with the summary text (no JSON, no markdown, just plain text)."""
+
+    try:
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=150,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        return message.content[0].text.strip()
+
+    except Exception as e:
+        import logging
+        logging.warning(f"AI summary generation failed: {e}")
+        return ""
