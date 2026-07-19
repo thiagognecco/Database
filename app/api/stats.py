@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Link
+from app.ai_service import get_ai_stats
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
@@ -83,3 +84,9 @@ def get_top_rated_links(limit: int = 10, db: Session = Depends(get_db)):
     return {
         "links": [link.to_dict() for link in links]
     }
+
+
+@router.get("/ai-usage")
+def get_ai_usage_stats():
+    """Get AI service usage statistics and cache info."""
+    return get_ai_stats()

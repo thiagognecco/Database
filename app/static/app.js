@@ -555,8 +555,11 @@ async function extractMetadata() {
     }
 
     const statusEl = document.getElementById('extract-status');
-    statusEl.textContent = '⏳ Extraindo dados...';
+    const extractBtn = document.getElementById('extract-btn');
+
+    statusEl.textContent = '⏳ Extraindo dados da URL...';
     statusEl.className = 'form-status loading';
+    extractBtn.disabled = true;
 
     try {
         const response = await fetch(`${API_BASE}/metadata/extract`, {
@@ -564,6 +567,9 @@ async function extractMetadata() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url })
         });
+
+        if (!response.ok) throw new Error('Falha ao extrair metadados');
+
         const data = await response.json();
 
         if (data.titulo) {
@@ -573,12 +579,26 @@ async function extractMetadata() {
             document.getElementById('new-resumo').value = data.resumo;
         }
 
-        statusEl.textContent = data.titulo ? '✅ Dados extraídos com sucesso!' : '⚠️ Não foi possível extrair dados (site pode estar bloqueado)';
-        statusEl.className = 'form-status success';
+        const success = data.titulo && data.titulo !== url;
+        statusEl.textContent = success ? '✅ Dados extraídos com sucesso!' : '⚠️ Título/descrição não encontrados (site pode estar bloqueado)';
+        statusEl.className = success ? 'form-status success' : 'form-status loading';
+
+        // Auto-clear status after 4 seconds
+        setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }, 4000);
 
     } catch (e) {
-        statusEl.textContent = '❌ Erro ao extrair dados';
+        statusEl.textContent = `❌ Erro ao extrair dados: ${e.message}`;
         statusEl.className = 'form-status error';
+
+        setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }, 5000);
+    } finally {
+        extractBtn.disabled = false;
     }
 }
 
@@ -695,8 +715,11 @@ async function analyzeWithAI() {
     if (!editingLinkId) return;
 
     const statusEl = document.getElementById('analyze-ai-status');
-    statusEl.textContent = '⏳ Analisando com IA...';
+    const analyzeBtn = document.getElementById('analyze-ai-btn');
+
+    statusEl.textContent = '🤖 Analisando link com IA...';
     statusEl.className = 'form-status loading';
+    analyzeBtn.disabled = true;
 
     try {
         const response = await fetch(`${API_BASE}/links/${editingLinkId}/analyze-with-ai`, {
@@ -704,22 +727,52 @@ async function analyzeWithAI() {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        if (!response.ok) throw new Error('Erro ao analisar');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Erro ao analisar');
+        }
 
         const result = await response.json();
         const link = result.link;
 
-        // Atualizar campos com dados da IA
-        if (link.categoria) document.getElementById('edit-categoria').value = link.categoria;
-        if (link.tema) document.getElementById('edit-tema').value = link.tema;
-        if (link.resumo) document.getElementById('edit-resumo').value = link.resumo;
+        // Highlight updated fields
+        const fieldsUpdated = [];
+        if (link.categoria && link.categoria !== document.getElementById('edit-categoria').value) {
+            document.getElementById('edit-categoria').value = link.categoria;
+            fieldsUpdated.push('Categoria');
+        }
+        if (link.tema && link.tema !== document.getElementById('edit-tema').value) {
+            document.getElementById('edit-tema').value = link.tema;
+            fieldsUpdated.push('Tema');
+        }
+        if (link.resumo && link.resumo !== document.getElementById('edit-resumo').value) {
+            document.getElementById('edit-resumo').value = link.resumo;
+            fieldsUpdated.push('Resumo');
+        }
 
-        statusEl.textContent = '✅ Link analisado com sucesso!';
+        if (fieldsUpdated.length > 0) {
+            statusEl.textContent = `✅ Atualizado: ${fieldsUpdated.join(', ')}`;
+        } else {
+            statusEl.textContent = '✅ Análise concluída (nenhuma alteração necessária)';
+        }
         statusEl.className = 'form-status success';
 
+        // Auto-clear status after 5 seconds
+        setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }, 5000);
+
     } catch (e) {
-        statusEl.textContent = `❌ Erro ao analisar: ${e.message}`;
+        statusEl.textContent = `❌ ${e.message}`;
         statusEl.className = 'form-status error';
+
+        setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = '';
+        }, 5000);
+    } finally {
+        analyzeBtn.disabled = false;
     }
 }
 

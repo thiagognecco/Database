@@ -597,24 +597,36 @@ footer {
 
 .form-status {
     margin: 10px 0;
-    padding: 10px;
+    padding: 12px 14px;
     border-radius: 6px;
     font-size: 0.9em;
+    border-left: 4px solid;
+    animation: slideIn 0.3s ease-out;
 }
 
 .form-status.success {
     background-color: #dcfce7;
     color: #166534;
+    border-left-color: #10b981;
 }
 
 .form-status.error {
     background-color: #fee2e2;
     color: #991b1b;
+    border-left-color: #ef4444;
 }
 
 .form-status.loading {
     background-color: #dbeafe;
     color: #0369a1;
+    border-left-color: #3b82f6;
+    background: linear-gradient(90deg, #dbeafe 0%, #cffafe 100%);
+    animation: slideIn 0.3s ease-out, pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
 }
 
 /* Responsive Design */
