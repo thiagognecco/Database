@@ -69,6 +69,7 @@ async function init() {
 
     clearSearchBtn.addEventListener('click', () => {
         searchInput.value = '';
+        clearSearchBtn.classList.remove('visible');
         searchInput.focus();
         if (suggestionsDropdown) suggestionsDropdown.remove();
         handleSearch();
@@ -135,10 +136,12 @@ function debounce(func, wait) {
 function handleSearchInput(e) {
     const query = e.target.value.trim();
 
-    // Show suggestions if query is not empty
+    // Show/hide clear button based on input
     if (query.length > 0) {
+        clearSearchBtn.classList.add('visible');
         fetchSuggestions(query);
     } else {
+        clearSearchBtn.classList.remove('visible');
         if (suggestionsDropdown) suggestionsDropdown.remove();
         handleSearch();
     }

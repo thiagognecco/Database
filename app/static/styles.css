@@ -149,15 +149,18 @@ header h1 {
 .btn-clear-search {
     position: absolute;
     right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
-    font-size: 1.4em;
+    font-size: 1.2em;
     color: var(--text-light);
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: 4px;
     transition: all 0.2s;
-    display: none;
+    opacity: 0;
+    visibility: hidden;
 }
 
 .btn-clear-search:hover {
@@ -165,9 +168,9 @@ header h1 {
     background-color: rgba(99, 102, 241, 0.1);
 }
 
-.search-bar:not(:placeholder-shown) ~ .btn-clear-search,
-.search-bar:focus ~ .btn-clear-search {
-    display: block;
+.btn-clear-search.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Buttons */
