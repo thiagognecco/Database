@@ -167,6 +167,9 @@ async function sendAIChatMessage() {
         let costText = '';
         if (data.usage && data.usage.cost_usd > 0) {
             costText = ` <small style="opacity: 0.7; font-size: 0.8em;">💵 $${data.usage.cost_usd.toFixed(4)}</small>`;
+
+            // Show toast with cost
+            showToast(`💬 Chat processado • Custo: $${data.usage.cost_usd.toFixed(4)} • ${data.usage.input_tokens} in + ${data.usage.output_tokens} out tokens`, 'info', 4000);
         }
         aiMsgEl.innerHTML = `<div class="message-content">${data.response.replace(/\n/g, '<br>')}${costText}</div>`;
         messagesContainer.appendChild(aiMsgEl);
@@ -741,6 +744,10 @@ function renderFavoritesData() {
 
 async function openSettings() {
     const settingsModal = document.getElementById('settings-modal');
+    if (!settingsModal) {
+        console.error('Settings modal not found');
+        return;
+    }
     settingsModal.style.display = 'flex';
 
     // Load statistics
