@@ -65,6 +65,13 @@ async function init() {
             if (suggestionsDropdown) suggestionsDropdown.remove();
         }, 200);
     });
+
+    // Botão de busca
+    document.getElementById('search-btn').addEventListener('click', () => {
+        handleSearch();
+        clearSearchInput();
+    });
+
     categoryFilter.addEventListener('change', handleSearch);
     platformFilter.addEventListener('change', handleSearch);
     favoritesFilter.addEventListener('change', handleSearch);
@@ -835,6 +842,12 @@ function toggleViewMode() {
 
     // Re-renderizar links
     performSearch();
+}
+
+// Função para limpar input de busca
+function clearSearchInput() {
+    searchInput.value = '';
+    if (suggestionsDropdown) suggestionsDropdown.remove();
 }
 
 // ===== NOVAS FUNCIONALIDADES =====
