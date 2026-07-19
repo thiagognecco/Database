@@ -58,4 +58,9 @@ class Link(Base):
             "confiabilidade": self.confiabilidade,
             "bot": self.bot,
             "favorito": self.favorito,
+            "tags": self.tags or "",
+            "rating": self.rating,
+            "lido": self.lido,
+            "criado_em": self.criado_em.isoformat() if self.criado_em else None,
+            "atualizado_em": self.atualizado_em.isoformat() if self.atualizado_em else None,
         }
