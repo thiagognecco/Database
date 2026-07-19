@@ -53,6 +53,15 @@
             <button class="shortcut-btn" id="view-mode-toggle" onclick="toggleViewMode()">📋 Modo Lista</button>
         </div>
 
+        <!-- BARRA DE CATEGORIAS -->
+        <div class="categories-bar">
+            <button class="category-btn active" data-category="">📂 Todas (2104)</button>
+            <div id="categories-list" class="categories-list">
+                <!-- Categorias carregadas dinamicamente -->
+            </div>
+            <button id="categories-scroll-right" class="categories-scroll" style="display:none;">→</button>
+        </div>
+
         <div class="filters">
             <select id="category-filter" class="filter-select">
                 <option value="">Todas as Categorias</option>

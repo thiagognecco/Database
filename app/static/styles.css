@@ -216,6 +216,70 @@ header h1 {
     cursor: not-allowed;
 }
 
+/* Categories Bar */
+.categories-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 0;
+    margin-bottom: 20px;
+    scroll-behavior: smooth;
+    align-items: center;
+}
+
+.categories-bar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.categories-bar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.categories-bar::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+.categories-list {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+}
+
+.category-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background-color: var(--bg-white);
+    color: var(--text-dark);
+    cursor: pointer;
+    font-size: 0.9em;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.category-btn:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(99, 102, 241, 0.05);
+    color: var(--primary-color);
+}
+
+.category-btn.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+.categories-scroll {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0 8px;
+    font-size: 1.2em;
+}
+
 /* Filters */
 .filters {
     display: flex;

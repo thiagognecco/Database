@@ -29,8 +29,11 @@ const paginationEl = document.getElementById('pagination');
 const prevPageBtn = document.getElementById('prev-page-btn');
 const nextPageBtn = document.getElementById('next-page-btn');
 const pageInfo = document.getElementById('page-info');
+const categoriesList = document.getElementById('categories-list');
+const categoriesBar = document.querySelector('.categories-bar');
 
 let totalResults = 0;
+let categoriesData = {};
 let editingLinkId = null;
 let confirmCallback = null;
 let suggestionsDropdown = null;
@@ -57,6 +60,10 @@ async function init() {
     // Load filters
     loadCategories();
     loadPlatforms();
+    loadCategoriesBar();
+
+    // Categories bar "Todas" button
+    document.querySelector('[data-category=""]')?.addEventListener('click', () => selectCategory(''));
 
     // Event listeners
     searchInput.addEventListener('input', handleSearchInput);
@@ -273,6 +280,52 @@ async function loadPlatforms() {
     } catch (e) {
         console.error('Failed to load platforms:', e);
     }
+}
+
+async function loadCategoriesBar() {
+    try {
+        const response = await fetch(`${API_BASE}/filters/categorias-count`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+        if (!data.categorias || !Array.isArray(data.categorias)) {
+            console.error('Invalid categorias-count response:', data);
+            return;
+        }
+
+        categoriesList.innerHTML = '';
+        data.categorias.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.dataset.category = cat.name;
+            btn.textContent = `📂 ${cat.name} (${cat.count})`;
+            btn.addEventListener('click', () => selectCategory(cat.name));
+            categoriesList.appendChild(btn);
+        });
+    } catch (e) {
+        console.error('Failed to load categories bar:', e);
+    }
+}
+
+function selectCategory(categoryName) {
+    currentCategory = categoryName;
+    currentPage = 0;
+
+    // Update active button
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-category=""]`)?.classList.add('active');
+
+    if (categoryName) {
+        document.querySelector(`[data-category="${categoryName}"]`)?.classList.add('active');
+        categoryFilter.value = categoryName;
+    } else {
+        categoryFilter.value = '';
+        document.querySelector(`[data-category=""]`)?.classList.add('active');
+    }
+
+    performSearch();
 }
 
 async function handleSearch() {
