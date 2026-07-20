@@ -134,6 +134,16 @@ Mantenha as respostas concisas mas completas (2-3 parágrafos)."""
         raise HTTPException(status_code=500, detail=f"Erro na IA: {str(e)}")
 
 
+@router.get("/status")
+def ai_status(db: Session = Depends(get_db)):
+    """Check if AI is configured."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    return {
+        "configured": bool(api_key and len(api_key) > 0),
+        "message": "API key is configured" if api_key else "API key not set"
+    }
+
+
 @router.get("/stats")
 def get_ai_stats(db: Session = Depends(get_db)):
     """Get AI usage statistics and costs."""

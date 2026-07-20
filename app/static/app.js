@@ -71,6 +71,7 @@ let favoritesSortBy = 'recentes';
 let editingLinkId = null;
 let confirmCallback = null;
 let suggestionsDropdown = null;
+let lastToast = null;
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -109,6 +110,23 @@ function initAIChat() {
             sendAIChatMessage();
         }
     });
+
+    // Check if API key is configured
+    checkAIConfigured();
+}
+
+async function checkAIConfigured() {
+    try {
+        const status = await fetch(`${API_BASE}/ai/status`).then(r => r.json());
+        const chatBtn = document.getElementById('chat-bubble-btn');
+        if (!status.configured) {
+            chatBtn.disabled = true;
+            chatBtn.title = '⚠️ API key não configurada. Configure ANTHROPIC_API_KEY no Railway.';
+            document.getElementById('ai-chat-bubble').style.opacity = '0.5';
+        }
+    } catch (e) {
+        console.log('AI status check failed:', e);
+    }
 }
 
 function toggleAIChat() {
@@ -750,6 +768,10 @@ async function openSettings() {
     }
     settingsModal.style.display = 'flex';
 
+    // Show loading state
+    const statsItems = document.querySelectorAll('.stat-value');
+    statsItems.forEach(item => item.textContent = '⏳');
+
     // Load statistics
     try {
         const stats = await fetch(`${API_BASE}/search/stats`).then(r => r.json());
@@ -759,6 +781,11 @@ async function openSettings() {
         document.getElementById('stat-favorites').textContent = stats.total_favoritos || 0;
     } catch (e) {
         console.error('Failed to load stats:', e);
+        document.getElementById('stat-total').textContent = '0';
+        document.getElementById('stat-categories').textContent = '0';
+        document.getElementById('stat-tags').textContent = '0';
+        document.getElementById('stat-favorites').textContent = '0';
+        showToast('⚠️ Erro ao carregar estatísticas', 'error');
     }
 
     // Load AI usage statistics
@@ -773,6 +800,10 @@ async function openSettings() {
         document.getElementById('stat-ai-avg').textContent = `$${avgCost}`;
     } catch (e) {
         console.log('Failed to load AI stats:', e);
+        // Set defaults if AI stats fail, don't break Settings
+        if (document.getElementById('stat-ai-chats')) document.getElementById('stat-ai-chats').textContent = '0';
+        if (document.getElementById('stat-ai-cost')) document.getElementById('stat-ai-cost').textContent = '$0.00';
+        if (document.getElementById('stat-ai-avg')) document.getElementById('stat-ai-avg').textContent = '$0.0000';
     }
 
     // Set current view mode
@@ -888,66 +919,111 @@ function renderLinks(links) {
 
 function createLinkCard(link) {
     const card = document.createElement('div');
-    card.className = 'link-card';
+    card.className = link.bloqueado ? 'link-card blocked-link' : 'link-card';
 
     const platform = link.plataforma || 'Link';
     const date = link.data ? new Date(link.data).toLocaleDateString('pt-BR') : '';
 
-    card.innerHTML = `
-        <div class="card-header">
-            <div>
-                <span class="platform-badge">${escapeHtml(platform)}</span>
+    // Renderizar link bloqueado com UI especial
+    if (link.bloqueado) {
+        card.innerHTML = `
+            <div class="card-header">
+                <div>
+                    <span class="blocked-badge">🔒 Bloqueado</span>
+                </div>
+                <button class="star-btn ${link.favorito ? 'favorite' : ''}" data-id="${link.id}" title="Favoritar">
+                    ${link.favorito ? '⭐' : '☆'}
+                </button>
             </div>
-            <button class="star-btn ${link.favorito ? 'favorite' : ''}" data-id="${link.id}" title="Favoritar">
-                ${link.favorito ? '⭐' : '☆'}
-            </button>
-        </div>
-        <div class="card-title">
-            <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
-        </div>
-        <div class="card-meta">
-            ${link.autor ? `<div class="meta-item">👤 ${escapeHtml(link.autor)}</div>` : ''}
-            ${date ? `<div class="meta-item">📅 ${date}</div>` : ''}
-        </div>
-        ${link.resumo ? `<div class="card-description">${escapeHtml(link.resumo.substring(0, 150))}${link.resumo.length > 150 ? '...' : ''}</div>` : ''}
-        <div class="card-badges">
-            ${link.categoria ? `<span class="badge badge-categoria">${escapeHtml(link.categoria)}</span>` : ''}
-            ${link.tema ? `<span class="badge badge-tema">${escapeHtml(link.tema)}</span>` : ''}
-        </div>
-        <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
-        <div class="card-actions">
-            <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
-            <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
-        </div>
-    `;
+            <div class="card-title">
+                <span>${escapeHtml(link.titulo || link.url)}</span>
+            </div>
+            <div class="card-description" style="color: #666; font-style: italic;">
+                ${escapeHtml(link.resumo)}
+            </div>
+            <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
+            <div class="card-actions">
+                <button class="btn btn-primary blocked-open-btn" onclick="window.open('${escapeHtml(link.url)}', '_blank')">
+                    🔗 Abrir no Site
+                </button>
+                <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
+            </div>
+        `;
+    } else {
+        // Link normal
+        card.innerHTML = `
+            <div class="card-header">
+                <div>
+                    <span class="platform-badge">${escapeHtml(platform)}</span>
+                </div>
+                <button class="star-btn ${link.favorito ? 'favorite' : ''}" data-id="${link.id}" title="Favoritar">
+                    ${link.favorito ? '⭐' : '☆'}
+                </button>
+            </div>
+            <div class="card-title">
+                <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
+            </div>
+            <div class="card-meta">
+                ${link.autor ? `<div class="meta-item">👤 ${escapeHtml(link.autor)}</div>` : ''}
+                ${date ? `<div class="meta-item">📅 ${date}</div>` : ''}
+            </div>
+            ${link.resumo ? `<div class="card-description">${escapeHtml(link.resumo.substring(0, 150))}${link.resumo.length > 150 ? '...' : ''}</div>` : ''}
+            <div class="card-badges">
+                ${link.categoria ? `<span class="badge badge-categoria">${escapeHtml(link.categoria)}</span>` : ''}
+                ${link.tema ? `<span class="badge badge-tema">${escapeHtml(link.tema)}</span>` : ''}
+            </div>
+            <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
+            <div class="card-actions">
+                <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
+                <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
+            </div>
+        `;
+    }
 
-    // Event listener para abrir detalhes do link
-    card.querySelector('.card-link').addEventListener('click', (e) => {
-        e.preventDefault();
-        showLinkDetail(link);
-    });
+    // Event listener para abrir detalhes do link (only for non-blocked links)
+    if (!link.bloqueado) {
+        const cardLinkEl = card.querySelector('.card-link');
+        if (cardLinkEl) {
+            cardLinkEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                showLinkDetail(link);
+            });
+        }
+    }
 
     // Event listeners para favoritar
-    card.querySelector('.star-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleFavorite(link.id);
-    });
+    const starBtn = card.querySelector('.star-btn');
+    if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleFavorite(link.id);
+        });
+    }
 
-    // Event listeners para editar e deletar
-    card.querySelector('.btn-edit').addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openEditLink(link.id);
-    });
+    // Event listeners para editar
+    const editBtn = card.querySelector('.btn-edit');
+    if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openEditLink(link.id);
+        });
+    }
 
-    card.querySelector('.btn-delete').addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        deleteLink(link.id);
-    });
+    // Event listeners para deletar (only for non-blocked links)
+    const deleteBtn = card.querySelector('.btn-delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteLink(link.id);
+        });
+    }
 
-    // Adicionar handler de clique para mostrar detalhes
-    addLinkCardClickHandler(card, link);
+    // Adicionar handler de clique para mostrar detalhes (only for non-blocked links)
+    if (!link.bloqueado) {
+        addLinkCardClickHandler(card, link);
+    }
 
     return card;
 }
@@ -1038,6 +1114,11 @@ function showLoading(show) {
 }
 
 function showToast(message, type = 'error', duration = 3000) {
+    // Remove previous toast
+    if (lastToast) {
+        lastToast.remove();
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
@@ -1074,10 +1155,16 @@ function showToast(message, type = 'error', duration = 3000) {
     }
 
     document.body.appendChild(toast);
+    lastToast = toast;
 
     setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
+        if (lastToast === toast) {  // Only animate if this is still the current toast
+            toast.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (toast.parentNode) toast.remove();
+                if (lastToast === toast) lastToast = null;
+            }, 300);
+        }
     }, duration);
 }
 
@@ -1604,6 +1691,12 @@ function handleKeyboardShortcuts(e) {
         e.preventDefault();
         searchInput.focus();
         searchInput.select();
+    }
+
+    // Cmd+M (or Ctrl+M) to toggle AI chat
+    if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+        e.preventDefault();
+        toggleAIChat();
     }
 
     // Esc to clear search
