@@ -3,5 +3,12 @@
     "summary": "Site oficial da linguagem Python, com downloads, documentação e recursos para desenvolvedores.",
     "cached_at": "2026-07-19T20:23:42.546260",
     "hit_count": 1
+  },
+  "categorize:https://test-duplicate.com/article": {
+    "categoria": "Outro",
+    "tema": "Artigo de Teste",
+    "confiabilidade": "Baixa",
+    "cached_at": "2026-07-20T01:00:15.419779",
+    "hit_count": 1
   }
 }

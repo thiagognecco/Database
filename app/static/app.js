@@ -837,9 +837,6 @@ async function openSettings() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
     darkModeToggle?.addEventListener('change', toggleDarkMode);
-
-    // API Key
-    document.getElementById('regenerate-api-key')?.addEventListener('click', regenerateApiKey);
 }
 
 async function handleSearch() {
@@ -1799,22 +1796,6 @@ function toggleDarkMode() {
     const isDarkMode = document.body.classList.toggle('dark-mode');
     localStorage.setItem('darkMode', isDarkMode);
     showSuccess(isDarkMode ? '🌙 Modo Escuro ativado' : '☀️ Modo Claro ativado');
-}
-
-function regenerateApiKey() {
-    const message = `
-🔑 Para regenerar sua API Key do Anthropic:
-
-1. Acesse: https://console.anthropic.com/account/keys
-2. Faça login com sua conta
-3. Clique em "Regenerate" perto de sua chave atual
-4. Copie a nova chave (sk-...)
-5. Adicione ao seu .env ou configure no Railway:
-   ANTHROPIC_API_KEY=sua_nova_chave
-
-ℹ️ A chave regenerada invalida todas as anteriores.
-    `;
-    showToast(message, 'info');
 }
 
 function handleKeyboardShortcuts(e) {
