@@ -144,6 +144,66 @@ def ai_status(db: Session = Depends(get_db)):
     }
 
 
+@router.post("/suggest-tags")
+def suggest_tags(request: ChatRequest, db: Session = Depends(get_db)):
+    """Suggest tags for a link based on title and summary."""
+
+    titulo = request.message.split("\n")[0] if "\n" in request.message else request.message
+    resumo = request.message.split("\n")[1] if "\n" in request.message else ""
+
+    if not titulo or len(titulo.strip()) < 3:
+        raise HTTPException(status_code=400, detail="Título inválido")
+
+    try:
+        system_prompt = """Você é um especialista em categorização e tagging de conteúdo.
+Analise o título e resumo fornecido e sugira 3-5 tags relevantes em português.
+As tags devem ser:
+- Simples e diretas
+- Relevantes ao conteúdo
+- Em minúsculas
+- Sem espaços (usar hífen se necessário)
+
+Retorne APENAS as tags separadas por vírgula, sem explicações.
+Exemplo: python, tutorial, programação, desenvolvimento"""
+
+        user_prompt = f"Título: {titulo}\n\nResumo: {resumo}"
+
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        message = client.messages.create(
+            model="claude-opus-4-1",
+            max_tokens=200,
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": user_prompt}
+            ]
+        )
+
+        tags_text = message.content[0].text.strip()
+        tags = [tag.strip() for tag in tags_text.split(",")]
+
+        # Log usage
+        input_tokens = message.usage.input_tokens
+        output_tokens = message.usage.output_tokens
+        cost = (input_tokens * 0.000003) + (output_tokens * 0.000015)
+
+        usage_log = AIUsageLog(
+            mensagem=f"Tag suggestion: {titulo[:50]}",
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            custo_usd=round(cost, 6)
+        )
+        db.add(usage_log)
+        db.commit()
+
+        return {
+            "tags": tags,
+            "cost_usd": round(cost, 6)
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao sugerir tags: {str(e)}")
+
+
 @router.get("/stats")
 def get_ai_stats(db: Session = Depends(get_db)):
     """Get AI usage statistics and costs."""

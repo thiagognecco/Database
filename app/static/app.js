@@ -369,6 +369,10 @@ async function init() {
     document.getElementById('save-edit-btn').addEventListener('click', saveEditLink);
     document.getElementById('cancel-edit-btn').addEventListener('click', closeAllModals);
     document.getElementById('analyze-ai-btn').addEventListener('click', analyzeWithAI);
+    document.getElementById('suggest-tags-edit-btn').addEventListener('click', suggestTagsForEdit);
+
+    // Suggest tags for new link
+    document.getElementById('suggest-tags-btn').addEventListener('click', suggestTagsForNew);
 
     // Confirm modal
     document.getElementById('confirm-cancel-btn').addEventListener('click', closeAllModals);
@@ -975,6 +979,7 @@ function createLinkCard(link) {
             <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
             <div class="card-actions">
                 <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
+                <button class="btn btn-small btn-duplicate" data-link-id="${link.id}" title="Duplicar link">📋 Duplicar</button>
                 <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
             </div>
         `;
@@ -1007,6 +1012,16 @@ function createLinkCard(link) {
             e.preventDefault();
             e.stopPropagation();
             openEditLink(link.id);
+        });
+    }
+
+    // Event listeners para duplicar
+    const duplicateBtn = card.querySelector('.btn-duplicate');
+    if (duplicateBtn) {
+        duplicateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            duplicateLink(link);
         });
     }
 
@@ -1423,6 +1438,141 @@ async function analyzeWithAI() {
         }, 5000);
     } finally {
         analyzeBtn.disabled = false;
+    }
+}
+
+async function duplicateLink(link) {
+    // Pré-preencher o modal de novo link com dados do link original
+    document.getElementById('new-url').value = '';
+    document.getElementById('new-titulo').value = link.titulo || '';
+    document.getElementById('new-resumo').value = link.resumo || '';
+    document.getElementById('new-categoria').value = link.categoria || '';
+    document.getElementById('new-plataforma').value = link.plataforma || '';
+    document.getElementById('new-tema').value = link.tema || '';
+    document.getElementById('new-autor').value = link.autor || '';
+
+    // Limpar status
+    document.getElementById('extract-status').innerHTML = '';
+
+    // Abrir modal
+    newLinkModal.style.display = 'flex';
+
+    // Focar na URL para usuário editar
+    document.getElementById('new-url').focus();
+
+    // Mostrar mensagem
+    showToast('📋 Link duplicado! Edite a URL e salve', 'info', 3000);
+}
+
+async function suggestTagsForNew() {
+    const titulo = document.getElementById('new-titulo').value.trim();
+    const resumo = document.getElementById('new-resumo').value.trim();
+    const statusEl = document.getElementById('suggest-tags-status');
+    const btn = document.getElementById('suggest-tags-btn');
+
+    if (!titulo) {
+        showToast('⚠️ Preencha o título primeiro', 'error');
+        return;
+    }
+
+    statusEl.textContent = '🤖 Gerando sugestões...';
+    statusEl.style.color = '#666';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE}/ai/suggest-tags`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: `${titulo}\n${resumo}`,
+                limit: 5
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao gerar tags');
+
+        const data = await response.json();
+        const tags = data.tags.join(', ');
+
+        // Se o campo categoria está vazio, usar a primeira tag
+        if (!document.getElementById('new-categoria').value && data.tags.length > 0) {
+            document.getElementById('new-categoria').value = data.tags[0];
+        }
+
+        // Se o campo tema está vazio, usar a segunda tag
+        if (!document.getElementById('new-tema').value && data.tags.length > 1) {
+            document.getElementById('new-tema').value = data.tags.slice(1).join(', ');
+        }
+
+        statusEl.textContent = `✅ Tags sugeridas: ${tags}`;
+        statusEl.style.color = '#10b981';
+        showToast(`✅ Tags sugeridas: ${tags}`, 'success', 3000);
+
+        setTimeout(() => {
+            statusEl.textContent = '';
+        }, 5000);
+    } catch (e) {
+        statusEl.textContent = `❌ ${e.message}`;
+        statusEl.style.color = '#ef4444';
+        showToast(`❌ Erro: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function suggestTagsForEdit() {
+    const titulo = document.getElementById('edit-titulo').value.trim();
+    const resumo = document.getElementById('edit-resumo').value.trim();
+    const statusEl = document.getElementById('suggest-tags-edit-status');
+    const btn = document.getElementById('suggest-tags-edit-btn');
+
+    if (!titulo) {
+        showToast('⚠️ Preencha o título primeiro', 'error');
+        return;
+    }
+
+    statusEl.textContent = '🤖 Gerando sugestões...';
+    statusEl.style.color = '#666';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE}/ai/suggest-tags`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: `${titulo}\n${resumo}`,
+                limit: 5
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao gerar tags');
+
+        const data = await response.json();
+        const tags = data.tags.join(', ');
+
+        // Se o campo categoria está vazio, usar a primeira tag
+        if (!document.getElementById('edit-categoria').value && data.tags.length > 0) {
+            document.getElementById('edit-categoria').value = data.tags[0];
+        }
+
+        // Se o campo tema está vazio, usar a segunda tag
+        if (!document.getElementById('edit-tema').value && data.tags.length > 1) {
+            document.getElementById('edit-tema').value = data.tags.slice(1).join(', ');
+        }
+
+        statusEl.textContent = `✅ Tags sugeridas: ${tags}`;
+        statusEl.style.color = '#10b981';
+        showToast(`✅ Tags sugeridas: ${tags}`, 'success', 3000);
+
+        setTimeout(() => {
+            statusEl.textContent = '';
+        }, 5000);
+    } catch (e) {
+        statusEl.textContent = `❌ ${e.message}`;
+        statusEl.style.color = '#ef4444';
+        showToast(`❌ Erro: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
     }
 }
 
