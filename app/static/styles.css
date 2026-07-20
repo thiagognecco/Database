@@ -1251,13 +1251,20 @@ footer {
 
 .detail-meta {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     background: var(--bg-card);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
     border: 1px solid var(--border-color);
+}
+
+@media (max-width: 600px) {
+    .detail-meta {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
 }
 
 .meta-item {
