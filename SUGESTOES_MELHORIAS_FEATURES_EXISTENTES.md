@@ -194,18 +194,23 @@ id, url, titulo, resumo, categoria, plataforma, tema, autor, tags, data_criado, 
 
 ---
 
-### 12. **Importar com Duplicação Smart** ⏱️ 60 min
+### 12. **Mecanismo Anti-Duplicata** ⏱️ 60 min
 ```
 Problema: Se importar CSV 2x, duplica todos os links
 Solução:
-- Verificar URL antes de importar
+- Verificar URL antes de importar/salvar
 - Se URL já existe, mostrar:
-  1. Pular (ignorar)
-  2. Atualizar (substituir dados)
-  3. Duplicar (permitir mesmo assim)
+  1. Pular (ignorar e continuar)
+  2. Atualizar (sobrescrever dados existentes)
 - Resumo após import: "30 importados, 5 atualizados, 2 pulados"
+- Impedir salvar link com URL duplicada em qualquer situação
+
+Backend:
+- Query: SELECT * FROM links WHERE url = ?
+- Se existir → retornar status 409 (Conflict)
+- Frontend: Mostrar aviso e opções (pular/atualizar)
 ```
-**Valor:** Alto | **Impacto:** Previne redundância 🔄
+**Valor:** Alto | **Impacto:** Garante integridade de dados ✅
 
 ---
 

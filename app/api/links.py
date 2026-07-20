@@ -44,6 +44,20 @@ def list_links(
     }
 
 
+@router.get("/check-url")
+def check_duplicate_url(url: str, db: Session = Depends(get_db)):
+    """Check if URL already exists in database."""
+    existing = db.query(Link).filter(Link.url == url).first()
+    if existing:
+        return {
+            "exists": True,
+            "id": existing.id,
+            "titulo": existing.titulo,
+            "url": existing.url
+        }
+    return {"exists": False}
+
+
 @router.get("/{link_id:int}")
 def get_link(link_id: int, db: Session = Depends(get_db)):
     """Get a specific link by ID."""

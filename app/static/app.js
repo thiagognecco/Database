@@ -979,7 +979,6 @@ function createLinkCard(link) {
             <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
             <div class="card-actions">
                 <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
-                <button class="btn btn-small btn-duplicate" data-link-id="${link.id}" title="Duplicar link">📋 Duplicar</button>
                 <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
             </div>
         `;
@@ -1012,16 +1011,6 @@ function createLinkCard(link) {
             e.preventDefault();
             e.stopPropagation();
             openEditLink(link.id);
-        });
-    }
-
-    // Event listeners para duplicar
-    const duplicateBtn = card.querySelector('.btn-duplicate');
-    if (duplicateBtn) {
-        duplicateBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            duplicateLink(link);
         });
     }
 
@@ -1270,6 +1259,20 @@ async function saveNewLink() {
         return;
     }
 
+    // Verificar duplicatas
+    try {
+        const checkResponse = await fetch(`${API_BASE}/links/check-url?url=${encodeURIComponent(url)}`);
+        if (checkResponse.ok) {
+            const existingLink = await checkResponse.json();
+            if (existingLink.exists) {
+                showToast(`⚠️ URL já existe! Título: "${existingLink.titulo}"`, 'error', 4000);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('Erro ao verificar URL duplicada:', e);
+    }
+
     const linkData = {
         url,
         titulo: document.getElementById('new-titulo').value || null,
@@ -1439,29 +1442,6 @@ async function analyzeWithAI() {
     } finally {
         analyzeBtn.disabled = false;
     }
-}
-
-async function duplicateLink(link) {
-    // Pré-preencher o modal de novo link com dados do link original
-    document.getElementById('new-url').value = '';
-    document.getElementById('new-titulo').value = link.titulo || '';
-    document.getElementById('new-resumo').value = link.resumo || '';
-    document.getElementById('new-categoria').value = link.categoria || '';
-    document.getElementById('new-plataforma').value = link.plataforma || '';
-    document.getElementById('new-tema').value = link.tema || '';
-    document.getElementById('new-autor').value = link.autor || '';
-
-    // Limpar status
-    document.getElementById('extract-status').innerHTML = '';
-
-    // Abrir modal
-    newLinkModal.style.display = 'flex';
-
-    // Focar na URL para usuário editar
-    document.getElementById('new-url').focus();
-
-    // Mostrar mensagem
-    showToast('📋 Link duplicado! Edite a URL e salve', 'info', 3000);
 }
 
 async function suggestTagsForNew() {
@@ -1662,7 +1642,9 @@ async function handleImport(e) {
         });
         const result = await response.json();
 
-        alert(`Importação concluída!\n\nImportados: ${result.imported}\nDuplicatas ignoradas: ${result.duplicates}\nErros: ${result.errors.length}`);
+        const successMsg = `✅ Importação concluída!\n\n📌 Importados: ${result.imported}\n🔄 Duplicatas ignoradas: ${result.duplicates}\n⚠️ Erros: ${result.errors.length}`;
+        showToast(successMsg, 'success', 5000);
+        alert(successMsg);
         handleSearch();
 
     } catch (e) {
