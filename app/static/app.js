@@ -169,10 +169,11 @@ async function sendAIChatMessage() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     try {
+        const aiModel = localStorage.getItem('aiModel') || 'claude-sonnet-5';
         const response = await fetch(`${API_BASE}/ai/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, limit: 5 })
+            body: JSON.stringify({ message, limit: 5, model: aiModel })
         });
 
         if (!response.ok) throw new Error('Erro ao enviar mensagem');
@@ -837,6 +838,17 @@ async function openSettings() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     darkModeToggle.checked = localStorage.getItem('darkMode') === 'true';
     darkModeToggle?.addEventListener('change', toggleDarkMode);
+
+    // AI Model selector
+    const aiModelSelect = document.getElementById('ai-model-select');
+    const savedModel = localStorage.getItem('aiModel') || 'claude-sonnet-5';
+    if (aiModelSelect) {
+        aiModelSelect.value = savedModel;
+        aiModelSelect.addEventListener('change', (e) => {
+            localStorage.setItem('aiModel', e.target.value);
+            showSuccess(`🤖 Modelo alterado para ${e.target.options[e.target.selectedIndex].text}`);
+        });
+    }
 }
 
 async function handleSearch() {

@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/ai", tags=["ai"])
 class ChatRequest(BaseModel):
     message: str
     limit: int = 5
+    model: str = "claude-sonnet-5"
 
 @router.post("/chat")
 async def ai_chat(request: ChatRequest, db: Session = Depends(get_db)):
@@ -81,7 +82,7 @@ Mantenha as respostas concisas mas completas (2-3 parágrafos)."""
         # Call Claude API
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         message = client.messages.create(
-            model="claude-opus-4-1",
+            model=request.model,
             max_tokens=1024,
             system=system_prompt,
             messages=[
@@ -170,7 +171,7 @@ Exemplo: python, tutorial, programação, desenvolvimento"""
 
         client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         message = client.messages.create(
-            model="claude-opus-4-1",
+            model=request.model,
             max_tokens=200,
             system=system_prompt,
             messages=[
