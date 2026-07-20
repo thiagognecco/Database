@@ -52,7 +52,7 @@ let currentCategory = '';
 let currentPlatform = '';
 let currentFavoriteFilter = false;
 
-// Modo de visualização (cards ou lista) - padrão grid para Fase 1
+// Modo de visualização (grid/cards, lista densa) - padrão grid para Fase 1
 let viewMode = localStorage.getItem('linkViewMode') || 'grid';
 
 // DOM Elements - inicializadas em init()
@@ -428,6 +428,19 @@ function setDisplayMode(mode) {
     // Atualizar buttons
     document.getElementById('mode-compact-btn').classList.toggle('active', mode === 'compact');
     document.getElementById('mode-expanded-btn').classList.toggle('active', mode === 'expanded');
+}
+
+// Função para alternar modo de visualização (grid, lista densa)
+function setViewMode(mode) {
+    viewMode = mode;
+    localStorage.setItem('linkViewMode', mode);
+    handleSearch(); // Renderizar com o novo modo
+
+    // Atualizar buttons se existirem
+    const viewModeButtons = document.querySelectorAll('[data-view-mode]');
+    viewModeButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.viewMode === mode);
+    });
 }
 
 function getLocalIP() {
@@ -951,19 +964,29 @@ function renderLinks(links) {
     emptyStateEl.style.display = 'none';
 
     // Renderizar baseado no modo de visualização
-    if (viewMode === 'lista') {
+    if (viewMode === 'list-dense') {
+        // Modo Lista Densa
+        linksContainer.classList.add('links-list-dense');
+        linksContainer.classList.remove('links-grid', 'links-list-mode');
+        links.forEach(link => {
+            const item = createLinkCard(link, 'list-dense');
+            linksContainer.appendChild(item);
+        });
+    } else if (viewMode === 'lista') {
+        // Modo Lista (mantém compatibilidade)
         linksContainer.classList.add('links-list-mode');
-        linksContainer.classList.remove('links-grid');
+        linksContainer.classList.remove('links-grid', 'links-list-dense');
         links.forEach(link => {
             const item = createLinkListItem(link);
             linksContainer.appendChild(item);
         });
     } else {
+        // Modo Grid (Cards Mini)
         linksContainer.classList.add('links-grid');
-        linksContainer.classList.remove('links-list-mode');
+        linksContainer.classList.remove('links-list-mode', 'links-list-dense');
         const displayMode = localStorage.getItem('cardDisplayMode') || 'normal';
         links.forEach(link => {
-            const card = createLinkCard(link);
+            const card = createLinkCard(link, 'grid');
             if (displayMode !== 'normal') {
                 toggleCardMode(card, displayMode);
             }
@@ -1007,9 +1030,15 @@ function getTruncatedTags(categoria, tema, maxCount = 4) {
     return tags.slice(0, maxCount).map(tag => `#${tag.toLowerCase()}`).join(' ');
 }
 
-function createLinkCard(link) {
+function createLinkCard(link, mode = 'grid') {
+    // Se modo lista densa, usar função alternativa
+    if (mode === 'list-dense') {
+        return createLinkListItem(link);
+    }
+
+    // Modo grid (cards mini)
     const card = document.createElement('div');
-    let classNames = link.bloqueado ? 'link-card blocked-link' : 'link-card';
+    let classNames = link.bloqueado ? 'link-card-mini blocked-link' : 'link-card-mini';
 
     // Adicionar classe de categoria para cor
     if (link.categoria) {
@@ -1019,82 +1048,33 @@ function createLinkCard(link) {
 
     card.className = classNames;
 
-    const platform = link.plataforma || 'Link';
-    const date = link.data ? new Date(link.data).toLocaleDateString('pt-BR') : '';
-    const dateObj = link.data ? new Date(link.data) : null;
-    const daysOld = dateObj ? Math.floor((Date.now() - dateObj.getTime()) / (1000 * 60 * 60 * 24)) : null;
-    const isNew = daysOld !== null && daysOld <= 7; // Novo se adicionado a menos de 7 dias
-    const placeholderImage = getPlaceholderImageUrl(link.categoria, link.tema, link.titulo);
-    const tags = getTruncatedTags(link.categoria, link.tema);
     const emoji = getEmojiForCategory(link.categoria);
-    const rating = link.rating || 0;
+    const categoria = link.categoria || 'Outros';
 
     // Renderizar link bloqueado com UI especial
     if (link.bloqueado) {
         card.innerHTML = `
-            <div class="card-header">
-                <div>
-                    <span class="blocked-badge">🔒 Bloqueado</span>
-                </div>
-                <button class="star-btn ${link.favorito ? 'favorite' : ''}" data-id="${link.id}" title="Favoritar">
-                    ${link.favorito ? '⭐' : '☆'}
-                </button>
-            </div>
-            <div class="card-title">
-                <span>${escapeHtml(link.titulo || link.url)}</span>
-            </div>
-            <div class="card-description" style="color: #666; font-style: italic;">
-                ${escapeHtml(link.resumo)}
-            </div>
-            <div class="card-url"><small>${escapeHtml(link.url.substring(0, 60))}${link.url.length > 60 ? '...' : ''}</small></div>
-            <div class="card-actions">
-                <button class="btn btn-primary blocked-open-btn" onclick="window.open('${escapeHtml(link.url)}', '_blank')">
-                    🔗 Abrir no Site
-                </button>
-                <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
+            <div class="mini-icon">🔒</div>
+            <div class="mini-category">${escapeHtml(categoria)}</div>
+            <div class="mini-title">${escapeHtml(link.titulo || link.url)}</div>
+            <div class="mini-actions">
+                <button class="btn-mini btn-edit" data-link-id="${link.id}" title="Editar">✏️</button>
+                <button class="btn-mini btn-delete" data-link-id="${link.id}" title="Deletar">🗑️</button>
             </div>
         `;
     } else {
-        // Link normal - Fase 1 + Fase 2
-        const badgeHtml = isNew ? `<span class="card-badge novo">✨ Novo</span>` : '';
-        const ratingStars = rating > 0 ? '⭐'.repeat(Math.min(rating, 5)) : '';
-
+        // Link normal - Cards Mini
         card.innerHTML = `
-            <div class="card-image-container">
-                <img src="${placeholderImage}" alt="Thumbnail" class="card-image">
-                <div class="card-image-overlay"></div>
+            <div class="mini-icon">${emoji}</div>
+            <div class="mini-category">${escapeHtml(categoria)}</div>
+            <div class="mini-title">
+                <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
             </div>
-            <div class="card-content">
-                ${badgeHtml ? `<div class="card-badge-group">${badgeHtml}</div>` : ''}
-
-                <div class="card-header">
-                    <div class="card-title-wrapper">
-                        <span class="card-icon">${emoji}</span>
-                        <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
-                    </div>
-                    <button class="star-btn ${link.favorito ? 'favorite' : ''}" data-id="${link.id}" title="Favoritar">
-                        ${link.favorito ? '⭐' : '☆'}
-                    </button>
-                </div>
-
-                ${link.resumo ? `<div class="card-description">${escapeHtml(link.resumo.substring(0, 120))}${link.resumo.length > 120 ? '...' : ''}</div>` : ''}
-
-                ${tags ? `<div class="card-tags">${tags}</div>` : ''}
-
-                ${ratingStars ? `<div class="card-rating">${ratingStars}</div>` : ''}
-
-                <div class="card-footer">
-                    <div class="card-meta">
-                        ${link.autor ? `<span class="meta-author">👤 ${escapeHtml(link.autor)}</span>` : ''}
-                        ${date ? `<span class="meta-date">📅 ${date}</span>` : ''}
-                        <span class="meta-platform">${escapeHtml(platform)}</span>
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <button class="btn btn-small btn-edit" data-link-id="${link.id}">✏️ Editar</button>
-                    <button class="btn btn-small btn-secondary btn-delete" data-link-id="${link.id}">🗑️ Deletar</button>
-                </div>
+            <div class="mini-actions">
+                <button class="btn-mini favorite-btn ${link.favorito ? 'active' : ''}" data-id="${link.id}" title="Favoritar">
+                    ${link.favorito ? '⭐' : '☆'}
+                </button>
+                <button class="btn-mini btn-share" data-link-id="${link.id}" title="Copiar">🔗</button>
             </div>
         `;
     }
@@ -1111,11 +1091,23 @@ function createLinkCard(link) {
     }
 
     // Event listeners para favoritar
-    const starBtn = card.querySelector('.star-btn');
-    if (starBtn) {
-        starBtn.addEventListener('click', (e) => {
+    const favBtn = card.querySelector('.favorite-btn');
+    if (favBtn) {
+        favBtn.addEventListener('click', (e) => {
             e.preventDefault();
             toggleFavorite(link.id);
+        });
+    }
+
+    // Event listeners para compartilhar
+    const shareBtn = card.querySelector('.btn-share');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigator.clipboard.writeText(link.url).then(() => {
+                showToast('🔗 Link copiado!', 'success');
+            });
         });
     }
 
@@ -1142,9 +1134,6 @@ function createLinkCard(link) {
     // Adicionar handler de clique para mostrar detalhes (only for non-blocked links)
     if (!link.bloqueado) {
         addLinkCardClickHandler(card, link);
-
-        // Fase 3: Adicionar preview ao hover
-        addCardPreview(card, link);
     }
 
     return card;
