@@ -2153,6 +2153,51 @@ body.dark-mode .ai-message .message-content {
     color: var(--text-dark);
 }
 
+/* AI Analysis Section */
+.ai-analysis-section {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.ai-analysis-section h3 {
+    color: var(--primary-color);
+    font-size: 1.1em;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ai-analysis-section h4 {
+    color: var(--primary-color);
+    font-size: 0.95em;
+    margin: 12px 0 8px 0;
+}
+
+.ai-analysis-section ul {
+    margin: 8px 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.ai-analysis-section li {
+    padding: 4px 0;
+    color: var(--text-dark);
+    position: relative;
+    padding-left: 20px;
+}
+
+.ai-analysis-section li:before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
 /* Responsive */
 @media (max-width: 500px) {
     .ai-chat-container {

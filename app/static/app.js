@@ -1897,8 +1897,7 @@ function showLinkDetail(link) {
 
     // Preencher modal
     document.getElementById('detail-title').textContent = link.titulo || 'Sem título';
-    document.getElementById('detail-url').textContent = link.url;
-    document.getElementById('detail-url').onclick = () => window.open(link.url, '_blank');
+    document.getElementById('detail-url').innerHTML = `<a href="${escapeHtml(link.url)}" target="_blank" style="color: inherit; text-decoration: underline; cursor: pointer;">🔗 ${escapeHtml(link.url)}</a>`;
     document.getElementById('detail-category').textContent = link.categoria || '-';
     document.getElementById('detail-platform').textContent = link.plataforma || '-';
     document.getElementById('detail-author').textContent = link.autor || '-';
@@ -1914,6 +1913,9 @@ function showLinkDetail(link) {
     document.getElementById('detail-toggle-favorite-btn').onclick = () => toggleFavorite(link.id);
     document.getElementById('detail-mark-read-btn').textContent = link.lido ? '📖 Marcar como Não Lido' : '✅ Marcar como Lido';
     document.getElementById('detail-mark-read-btn').onclick = () => markAsRead(link.id);
+
+    // Adicionar análise da IA
+    addAIAnalysisSection(link);
 
     // Mostrar modal
     document.getElementById('link-detail-modal').classList.add('show');
@@ -1937,7 +1939,76 @@ async function markAsRead(linkId) {
     }
 }
 
-// Modificar createLinkCard para adicionar clique
+
+function addAIAnalysisSection(link) {
+    const bodyEl = document.querySelector('.link-detail-body');
+
+    // Remover seção anterior se existir
+    const prevAiSection = bodyEl.querySelector('.ai-analysis-section');
+    if (prevAiSection) prevAiSection.remove();
+
+    // Criar seção de análise
+    const aiSection = document.createElement('div');
+    aiSection.className = 'ai-analysis-section detail-section';
+    aiSection.innerHTML = `
+        <h3>🤖 Análise Gerada pela IA</h3>
+        <div id="ai-analysis-loading" style="text-align: center; padding: 20px;">
+            <div class="spinner" style="margin: 0 auto 10px;"></div>
+            <p>Analisando com IA...</p>
+        </div>
+        <div id="ai-analysis-content" style="display: none;"></div>
+    `;
+
+    bodyEl.appendChild(aiSection);
+
+    // Carregar análise da IA
+    analyzeLinkWithAI(link.id).then(analysis => {
+        const loadingEl = document.getElementById('ai-analysis-loading');
+        const contentEl = document.getElementById('ai-analysis-content');
+
+        if (analysis) {
+            contentEl.innerHTML = `
+                <div style="background: var(--bg-card); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="color: var(--primary-color); margin-top: 0;">📋 Resumo</h4>
+                    <p>${analysis.summary || 'N/A'}</p>
+                </div>
+
+                <div style="background: var(--bg-card); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="color: var(--primary-color); margin-top: 0;">💡 Principais Insights</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        ${(analysis.insights || []).slice(0, 3).map(insight => `<li>${insight}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div style="background: var(--bg-card); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="color: var(--primary-color); margin-top: 0;">🎯 Por Que Ler?</h4>
+                    <p>${analysis.why_read || 'N/A'}</p>
+                </div>
+
+                <div style="background: var(--bg-card); padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                    <h4 style="color: var(--primary-color); margin-top: 0;">🔑 Palavras-Chave</h4>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${(analysis.keywords || []).map(kw => `<span style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; padding: 6px 12px; border-radius: 16px; font-size: 0.9em;">${kw}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-card); padding: 16px; border-radius: 8px;">
+                    <h4 style="color: var(--primary-color); margin-top: 0;">⏱️ Tempo Estimado de Leitura</h4>
+                    <p>${analysis.estimated_time || 'N/A'}</p>
+                </div>
+
+                <p style="text-align: center; font-size: 0.8em; color: var(--text-light); margin-top: 12px;">
+                    ✨ Análise gerada por IA (${analysis.model || 'Claude'})
+                </p>
+            `;
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+        } else {
+            loadingEl.innerHTML = '<p style="color: var(--text-light);">❌ Não foi possível gerar análise</p>';
+        }
+    });
+}
+
 function addLinkCardClickHandler(card, link) {
     card.style.cursor = 'pointer';
     card.addEventListener('click', (e) => {
