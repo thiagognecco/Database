@@ -1939,6 +1939,28 @@ async function markAsRead(linkId) {
     }
 }
 
+async function analyzeLinkWithAI(link) {
+    try {
+        const response = await fetch(`${API_BASE}/ai/analyze-link`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                titulo: link.titulo,
+                resumo: link.resumo,
+                categoria: link.categoria,
+                tema: link.tema,
+                url: link.url,
+                plataforma: link.plataforma
+            })
+        });
+
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (e) {
+        console.log('AI analysis failed:', e);
+        return null;
+    }
+}
 
 function addAIAnalysisSection(link) {
     const bodyEl = document.querySelector('.link-detail-body');
@@ -1962,7 +1984,7 @@ function addAIAnalysisSection(link) {
     bodyEl.appendChild(aiSection);
 
     // Carregar análise da IA
-    analyzeLinkWithAI(link.id).then(analysis => {
+    analyzeLinkWithAI(link).then(analysis => {
         const loadingEl = document.getElementById('ai-analysis-loading');
         const contentEl = document.getElementById('ai-analysis-content');
 
