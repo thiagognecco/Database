@@ -12,6 +12,28 @@ from app.ai_service import refine_metadata_pt
 
 router = APIRouter(prefix="/api/metadata", tags=["metadata"])
 
+# Blocked domains that don't allow scraping
+BLOCKED_DOMAINS = {
+    'linkedin.com': '🔒 LinkedIn - Não permite preview',
+    'facebook.com': '🔒 Facebook - Não permite preview',
+    'instagram.com': '🔒 Instagram - Não permite preview',
+    'tiktok.com': '🔒 TikTok - Não permite preview',
+    'twitter.com': '🔒 Twitter - Restrição de acesso',
+    'x.com': '🔒 X (Twitter) - Restrição de acesso',
+}
+
+def extract_domain(url: str) -> str:
+    """Extract domain from URL."""
+    try:
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower()
+        # Remove 'www.' prefix if present
+        if domain.startswith('www.'):
+            domain = domain[4:]
+        return domain
+    except:
+        return ""
+
 # Rate limiting: 1 request per second
 _request_times = []
 _rate_limit_lock = asyncio.Lock()
@@ -48,6 +70,16 @@ async def extract_metadata(url: str) -> dict:
         except:
             pass
 
+        # Check if domain is blocked
+        domain = extract_domain(url)
+        if domain in BLOCKED_DOMAINS:
+            message = BLOCKED_DOMAINS[domain]
+            return {
+                "titulo": message.split(' - ')[0],
+                "resumo": f"{message} - Abra no site para ver conteúdo",
+                "bloqueado": True
+            }
+
         # Fetch page with timeout (max 10 seconds)
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
@@ -59,7 +91,13 @@ async def extract_metadata(url: str) -> dict:
             )
 
         if response.status_code not in [200, 204]:
-            # Site blocked or error
+            # Site blocked or error (403, 429, etc)
+            if response.status_code in [403, 429]:
+                return {
+                    "titulo": "Conteúdo Protegido",
+                    "resumo": "🔒 Site bloqueia acesso - Abra no navegador",
+                    "bloqueado": True
+                }
             return {"titulo": None, "resumo": None}
 
         # Parse HTML
