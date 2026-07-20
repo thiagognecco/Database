@@ -1941,6 +1941,7 @@ async function markAsRead(linkId) {
 
 async function analyzeLinkWithAI(link) {
     try {
+        // Tentar API completa primeiro
         const response = await fetch(`${API_BASE}/ai/analyze-link`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1954,12 +1955,40 @@ async function analyzeLinkWithAI(link) {
             })
         });
 
-        if (!response.ok) return null;
-        return await response.json();
+        if (response.ok) {
+            return await response.json();
+        }
     } catch (e) {
-        console.log('AI analysis failed:', e);
-        return null;
+        console.log('AI analysis API failed:', e);
     }
+
+    // Fallback: análise local baseada nos dados disponíveis
+    return generateLocalAnalysis(link);
+}
+
+function generateLocalAnalysis(link) {
+    const summary = link.resumo || 'Link interessante para explorar';
+    const categoria = link.categoria || 'Geral';
+    const keywords = [categoria, link.tema, link.plataforma].filter(Boolean);
+
+    const insights = [
+        `Este é um recurso de ${categoria.toLowerCase()}`,
+        link.resumo ? 'Contém descrição detalhada do conteúdo' : 'Recurso sem descrição',
+        `Disponível em ${link.plataforma || 'plataforma diversa'}`
+    ];
+
+    const readingTime = link.resumo ?
+        `${Math.max(1, Math.ceil(link.resumo.length / 100))} minuto(s)` :
+        'Não estimado';
+
+    return {
+        summary: summary,
+        insights: insights.filter(Boolean),
+        why_read: `Este link oferece recursos e informações sobre ${categoria.toLowerCase()}. ${link.resumo ? 'Contém informações detalhadas sobre o assunto.' : ''}`,
+        keywords: keywords.slice(0, 5),
+        estimated_time: readingTime,
+        model: 'Local Analysis'
+    };
 }
 
 function addAIAnalysisSection(link) {
