@@ -55,9 +55,9 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px 40px 40px 40px;
+    padding: 20px 60px 40px 60px;
     overflow-x: hidden;
 }
 
