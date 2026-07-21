@@ -38,15 +38,37 @@
             <button id="new-link-btn" class="btn btn-primary">✨ Novo Link</button>
         </div>
 
-        <!-- ATALHOS RÁPIDOS -->
-        <div class="quick-shortcuts">
-            <button class="shortcut-btn active" data-shortcut="todos">📋 Todos os Links</button>
-            <button class="shortcut-btn" data-shortcut="ultimos">🆕 Últimos Adicionados</button>
-            <button class="shortcut-btn" data-shortcut="favoritos" id="favorites-shortcut">⭐ Meus Favoritos</button>
-            <button class="shortcut-btn" data-shortcut="lidos">✅ Já Lidos</button>
-            <button class="shortcut-btn" data-shortcut="nao-lidos">📖 Para Ler</button>
-            <button class="shortcut-btn" data-shortcut="modo-leitor" id="reader-mode-btn">👁️ Modo Leitor</button>
-            <button class="shortcut-btn" id="view-mode-toggle" onclick="toggleViewMode()">📋 Modo Lista</button>
+        <!-- BARRA ÚNICA COMPACTA: ATALHOS + FILTROS + MARCADORES -->
+        <div class="compact-controls-bar">
+            <button id="all-links-btn" class="shortcut-btn active" data-shortcut="todos">📋 Todos</button>
+
+            <select id="categories-dropdown" class="compact-select">
+                <option value="">📂 Categorias</option>
+            </select>
+
+            <select id="view-mode-select" class="compact-select">
+                <option value="grid">👁️ Grid</option>
+                <option value="lista">📋 Lista</option>
+                <option value="compacto">Compacto</option>
+                <option value="expandido">Expandido</option>
+            </select>
+
+            <button id="favorites-shortcut" class="compact-icon-btn" title="Favoritos">⭐</button>
+            <button id="para-ler-shortcut" class="compact-icon-btn" title="Para Ler">📖</button>
+
+            <button id="tags-toggle-btn" class="compact-icon-btn" title="Marcadores">🏷️</button>
+        </div>
+
+        <!-- PAINEL DE TAGS/MARCADORES COLAPSÍVEL (dropdown abaixo da barra) -->
+        <div id="tags-panel-dropdown" class="tags-panel-dropdown" style="display: none;">
+            <div class="tags-panel-header">
+                <span>Filtrar por Marcadores</span>
+                <button id="close-tags-panel" class="close-btn">✕</button>
+            </div>
+            <div id="tags-list" class="tags-list">
+                <!-- Tags carregadas dinamicamente -->
+            </div>
+            <button id="clear-tags-btn" class="btn btn-small" style="display:none; margin-top: 12px; width: 100%;">Limpar Seleção</button>
         </div>
 
         <!-- PAINEL DE FAVORITOS -->
@@ -72,29 +94,8 @@
             </div>
         </div>
 
-        <!-- BARRA DE CATEGORIAS -->
-        <div class="categories-bar">
-            <button class="category-btn active" data-category="">📂 Todas (2104)</button>
-            <div id="categories-list" class="categories-list">
-                <!-- Categorias carregadas dinamicamente -->
-            </div>
-            <button id="categories-scroll-right" class="categories-scroll" style="display:none;">→</button>
-        </div>
-
-        <!-- BARRA DE TAGS/MARCADORES COLAPSÍVEL -->
-        <div class="tags-bar">
-            <button id="tags-toggle-btn" class="tags-toggle-btn">
-                <span>🏷️ Marcadores</span>
-                <span class="toggle-arrow">▼</span>
-            </button>
-            <div id="tags-panel" class="tags-panel" style="display: none;">
-                <div id="tags-list" class="tags-list">
-                    <!-- Tags carregadas dinamicamente -->
-                </div>
-                <button id="clear-tags-btn" class="btn btn-small" style="display:none; margin-top: 12px; width: 100%;">Limpar Seleção</button>
-            </div>
-            <div id="selected-tags" class="selected-tags"></div>
-        </div>
+        <!-- CONTAINER PARA TAGS SELECIONADAS (abaixo da barra) -->
+        <div id="selected-tags" class="selected-tags"></div>
 
         <div class="filters">
             <select id="category-filter" class="filter-select">

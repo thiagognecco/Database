@@ -272,8 +272,6 @@ async function init() {
     prevPageBtn = document.getElementById('prev-page-btn');
     nextPageBtn = document.getElementById('next-page-btn');
     pageInfo = document.getElementById('page-info');
-    categoriesList = document.getElementById('categories-list');
-    categoriesBar = document.querySelector('.categories-bar');
     tagsList = document.getElementById('tags-list');
     selectedTagsContainer = document.getElementById('selected-tags');
     clearTagsBtn = document.getElementById('clear-tags-btn');
@@ -294,25 +292,60 @@ async function init() {
     // Load filters
     loadCategories();
     loadPlatforms();
-    loadCategoriesBar();
+    loadCategoriesDropdown();
     loadTagsBar();
-
-    // Categories bar "Todas" button
-    document.querySelector('[data-category=""]')?.addEventListener('click', () => selectCategory(''));
 
     // Tags toggle button
     const tagsToggleBtn = document.getElementById('tags-toggle-btn');
-    const tagsPanel = document.getElementById('tags-panel');
-    if (tagsToggleBtn) {
+    const tagsPanelDropdown = document.getElementById('tags-panel-dropdown');
+    const closeTagsPanel = document.getElementById('close-tags-panel');
+    if (tagsToggleBtn && tagsPanelDropdown) {
         tagsToggleBtn.addEventListener('click', () => {
-            const isExpanded = tagsPanel.style.display !== 'none';
-            tagsPanel.style.display = isExpanded ? 'none' : 'block';
-            tagsToggleBtn.classList.toggle('expanded', !isExpanded);
+            const isExpanded = tagsPanelDropdown.style.display !== 'none';
+            tagsPanelDropdown.style.display = isExpanded ? 'none' : 'block';
+            tagsToggleBtn.classList.toggle('active', !isExpanded);
+        });
+        closeTagsPanel?.addEventListener('click', () => {
+            tagsPanelDropdown.style.display = 'none';
+            tagsToggleBtn.classList.remove('active');
         });
     }
 
     // Clear tags button
     clearTagsBtn.addEventListener('click', clearAllTags);
+
+    // Compact controls: Favorites button
+    document.getElementById('favorites-shortcut')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavoritesPanel();
+    });
+
+    // Compact controls: Para Ler button
+    document.getElementById('para-ler-shortcut')?.addEventListener('click', () => {
+        currentSearch = '';
+        searchInput.value = '';
+        selectCategory('');
+        handleSearch();
+    });
+
+    // Categories dropdown
+    const categoriesDropdown = document.getElementById('categories-dropdown');
+    if (categoriesDropdown) {
+        categoriesDropdown.addEventListener('change', (e) => {
+            selectCategory(e.target.value);
+        });
+    }
+
+    // View mode dropdown
+    const viewModeSelect = document.getElementById('view-mode-select');
+    if (viewModeSelect) {
+        viewModeSelect.value = viewMode;
+        viewModeSelect.addEventListener('change', (e) => {
+            viewMode = e.target.value;
+            localStorage.setItem('linkViewMode', viewMode);
+            applyViewMode();
+        });
+    }
 
     // Event listeners
     searchInput.addEventListener('input', handleSearchInput);
@@ -612,7 +645,7 @@ async function loadPlatforms() {
     }
 }
 
-async function loadCategoriesBar() {
+async function loadCategoriesDropdown() {
     try {
         const response = await fetch(`${API_BASE}/filters/categorias-count`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -623,17 +656,22 @@ async function loadCategoriesBar() {
             return;
         }
 
-        categoriesList.innerHTML = '';
+        const dropdown = document.getElementById('categories-dropdown');
+        if (!dropdown) return;
+
+        const currentValue = dropdown.value;
+        dropdown.innerHTML = '<option value="">📂 Categorias</option>';
+
         data.categorias.forEach(cat => {
-            const btn = document.createElement('button');
-            btn.className = 'category-btn';
-            btn.dataset.category = cat.name;
-            btn.textContent = `📂 ${cat.name} (${cat.count})`;
-            btn.addEventListener('click', () => selectCategory(cat.name));
-            categoriesList.appendChild(btn);
+            const option = document.createElement('option');
+            option.value = cat.name;
+            option.textContent = `${cat.name} (${cat.count})`;
+            dropdown.appendChild(option);
         });
+
+        dropdown.value = currentValue;
     } catch (e) {
-        console.error('Failed to load categories bar:', e);
+        console.error('Failed to load categories dropdown:', e);
     }
 }
 
@@ -641,17 +679,16 @@ function selectCategory(categoryName) {
     currentCategory = categoryName;
     currentPage = 0;
 
-    // Update active button
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+    // Update dropdown
+    const dropdown = document.getElementById('categories-dropdown');
+    if (dropdown) {
+        dropdown.value = categoryName || '';
+    }
 
     if (categoryName) {
-        document.querySelector(`[data-category="${categoryName}"]`)?.classList.add('active');
         categoryFilter.value = categoryName;
     } else {
         categoryFilter.value = '';
-        document.querySelector(`[data-category=""]`)?.classList.add('active');
     }
 
     performSearch();
