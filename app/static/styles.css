@@ -522,11 +522,11 @@ header h1 {
 /* Links Grid */
 .links-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 15px;
     margin-bottom: 30px;
     width: 100%;
-    max-width: calc(100% - 0px);
+    overflow: clip;
 }
 
 .link-card {
