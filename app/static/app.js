@@ -1320,10 +1320,12 @@ function createPreviewCard(link) {
     if (link.categoria) tags.push(link.categoria);
     if (link.tema) tags.push(link.tema);
     const tagsText = tags.join(' • ');
+    const platform = link.plataforma || 'Link';
+    const emoji = getEmojiForCategory(link.categoria);
 
     card.innerHTML = `
-        <div class="preview-iframe-container">
-            <iframe src="${link.url}" sandbox="allow-same-origin" loading="lazy"></iframe>
+        <div class="preview-iframe-container" id="iframe-container-${link.id}">
+            <iframe id="iframe-${link.id}" src="${link.url}" sandbox="allow-same-origin" loading="lazy"></iframe>
         </div>
         <div class="preview-card-footer">
             <div class="preview-card-title" title="${escapeHtml(link.titulo || link.url)}">${escapeHtml(link.titulo || link.url)}</div>
@@ -1333,6 +1335,29 @@ function createPreviewCard(link) {
             </button>
         </div>
     `;
+
+    // Detectar se o iframe foi bloqueado
+    const iframe = card.querySelector(`#iframe-${link.id}`);
+    const container = card.querySelector(`#iframe-container-${link.id}`);
+
+    if (iframe) {
+        // Timeout para detectar se travou carregando
+        const timeoutId = setTimeout(() => {
+            // Se não carregou em 3 segundos, provavelmente bloqueou
+            showBlockedFallback(container, link, emoji, platform);
+        }, 3000);
+
+        // Se conseguir carregar, limpar timeout
+        iframe.addEventListener('load', () => {
+            clearTimeout(timeoutId);
+        });
+
+        // Erro ao carregar
+        iframe.addEventListener('error', () => {
+            clearTimeout(timeoutId);
+            showBlockedFallback(container, link, emoji, platform);
+        });
+    }
 
     // Event listener para favoritar
     const favBtn = card.querySelector('.preview-card-favorite');
@@ -1345,6 +1370,35 @@ function createPreviewCard(link) {
     }
 
     return card;
+}
+
+// Mostrar fallback quando site bloqueia preview
+function showBlockedFallback(container, link, emoji, platform) {
+    const gradient = getGradientForCategory(link.categoria);
+    container.innerHTML = `
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: ${gradient};
+            padding: 20px;
+            text-align: center;
+            color: white;
+        ">
+            <div style="font-size: 2.5em; margin-bottom: 12px;">📷</div>
+            <div style="font-size: 0.95em; font-weight: 600; margin-bottom: 8px;">
+                Site não permite preview
+            </div>
+            <div style="font-size: 0.85em; opacity: 0.9; margin-bottom: 12px;">
+                ${emoji} ${escapeHtml(link.categoria || 'Link')}
+            </div>
+            <div style="font-size: 0.8em; opacity: 0.8;">
+                ${escapeHtml(platform)}
+            </div>
+        </div>
+    `;
 }
 
 // Nova função para renderizar item da lista (2 linhas compacto)
