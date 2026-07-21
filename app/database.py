@@ -8,6 +8,11 @@ from sqlalchemy.pool import StaticPool
 
 from app.models import Base
 
+# Setup directory and paths
+DADOS_DIR = Path(__file__).parent.parent / "dados"
+DADOS_DIR.mkdir(exist_ok=True)
+DB_PATH = DADOS_DIR / "banco.db"
+
 # Usar PostgreSQL Railway como padrão, fallback para SQLite local
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
@@ -19,9 +24,6 @@ if DATABASE_URL.startswith("postgresql"):
     engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
 else:
     # Fallback para SQLite local (desenvolvimento)
-    DADOS_DIR = Path(__file__).parent.parent / "dados"
-    DADOS_DIR.mkdir(exist_ok=True)
-    DB_PATH = DADOS_DIR / "banco.db"
     DATABASE_URL = f"sqlite:///{DB_PATH}"
     engine = create_engine(
         DATABASE_URL,
