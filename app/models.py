@@ -22,7 +22,7 @@ class Link(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     url = Column(String(2048), unique=True, nullable=False, index=True)
-    titulo = Column(String(500), nullable=True)
+    titulo = Column(String(2048), nullable=True)
     resumo = Column(Text, nullable=True)
     autor = Column(String(200), nullable=True)
     data = Column(DateTime, nullable=True)

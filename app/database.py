@@ -1,4 +1,5 @@
 """Database setup and management."""
+import os
 import sqlite3
 from pathlib import Path
 from sqlalchemy import create_engine, text, event
@@ -7,20 +8,27 @@ from sqlalchemy.pool import StaticPool
 
 from app.models import Base
 
-# Dados dir alongside executable/script
-DADOS_DIR = Path(__file__).parent.parent / "dados"
-DADOS_DIR.mkdir(exist_ok=True)
-
-DB_PATH = DADOS_DIR / "banco.db"
-DATABASE_URL = f"sqlite:///{DB_PATH}"
-
-# SQLite engine com FTS5 support
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-    echo=False,
+# Usar PostgreSQL Railway como padrão, fallback para SQLite local
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:YZJGFupkhYxnmcsqwaiYkMLZTgSaORBa@tokaido.proxy.rlwy.net:52228/railway"
 )
+
+# Se DATABASE_URL começa com postgresql, usa PostgreSQL
+if DATABASE_URL.startswith("postgresql"):
+    engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
+else:
+    # Fallback para SQLite local (desenvolvimento)
+    DADOS_DIR = Path(__file__).parent.parent / "dados"
+    DADOS_DIR.mkdir(exist_ok=True)
+    DB_PATH = DADOS_DIR / "banco.db"
+    DATABASE_URL = f"sqlite:///{DB_PATH}"
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=False,
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
