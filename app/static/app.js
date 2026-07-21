@@ -1048,7 +1048,15 @@ function renderLinks(links) {
     emptyStateEl.style.display = 'none';
 
     // Renderizar baseado no modo de visualização
-    if (viewMode === 'list-dense') {
+    if (viewMode === 'preview') {
+        // Modo Preview - Lista com preview inline
+        linksContainer.classList.add('links-list-mode');
+        linksContainer.classList.remove('links-grid', 'links-list-dense');
+        links.forEach(link => {
+            const item = createPreviewCard(link);
+            linksContainer.appendChild(item);
+        });
+    } else if (viewMode === 'list-dense') {
         // Modo Lista Densa
         linksContainer.classList.add('links-list-dense');
         linksContainer.classList.remove('links-grid', 'links-list-mode');
@@ -1301,6 +1309,42 @@ function toggleCardMode(cardElement, mode) {
     } else {
         cardElement.classList.remove('compact', 'expanded');
     }
+}
+
+// Função para criar card com preview da página
+function createPreviewCard(link) {
+    const card = document.createElement('div');
+    card.className = 'link-card-preview';
+
+    const tags = [];
+    if (link.categoria) tags.push(link.categoria);
+    if (link.tema) tags.push(link.tema);
+    const tagsText = tags.join(' • ');
+
+    card.innerHTML = `
+        <div class="preview-iframe-container">
+            <iframe src="${link.url}" sandbox="allow-same-origin" loading="lazy"></iframe>
+        </div>
+        <div class="preview-card-footer">
+            <div class="preview-card-title" title="${escapeHtml(link.titulo || link.url)}">${escapeHtml(link.titulo || link.url)}</div>
+            <div class="preview-card-tags" title="${escapeHtml(tagsText)}">${escapeHtml(tagsText)}</div>
+            <button class="preview-card-favorite ${link.favorito ? 'active' : ''}" data-id="${link.id}" title="Favoritar">
+                ${link.favorito ? '⭐' : '☆'}
+            </button>
+        </div>
+    `;
+
+    // Event listener para favoritar
+    const favBtn = card.querySelector('.preview-card-favorite');
+    if (favBtn) {
+        favBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFavorite(link.id);
+        });
+    }
+
+    return card;
 }
 
 // Nova função para renderizar item da lista (2 linhas compacto)
@@ -2194,41 +2238,9 @@ function toggleDarkMode() {
     showSuccess(isDarkMode ? '🌙 Modo Escuro ativado' : '☀️ Modo Claro ativado');
 }
 
-// Preview Modal Functions
-function openPreview(url, title) {
-    previewLinkUrl = url;
-    previewLinkTitle = title;
-
-    const modal = document.getElementById('preview-modal');
-    const titleEl = document.getElementById('preview-title');
-    const urlEl = document.getElementById('preview-url');
-    const iframe = document.getElementById('preview-iframe');
-
-    titleEl.textContent = title;
-    urlEl.textContent = url;
-    iframe.src = url;
-
-    modal.style.display = 'flex';
-}
-
-function closePreviewModal() {
-    const modal = document.getElementById('preview-modal');
-    const iframe = document.getElementById('preview-iframe');
-    modal.style.display = 'none';
-    iframe.src = '';
-}
-
-function openPreviewLink() {
-    if (previewLinkUrl) {
-        window.open(previewLinkUrl, '_blank');
-    }
-}
-
 // Override card click handler to check preview mode
 function handleCardClick(link) {
-    if (viewMode === 'preview') {
-        openPreview(link.url, link.titulo || link.url);
-    } else {
+    if (viewMode !== 'preview') {
         showLinkDetail(link);
     }
 }
@@ -2247,15 +2259,10 @@ function handleKeyboardShortcuts(e) {
         toggleAIChat();
     }
 
-    // Esc to clear search or close preview
-    if (e.key === 'Escape') {
-        const previewModal = document.getElementById('preview-modal');
-        if (previewModal && previewModal.style.display === 'flex') {
-            closePreviewModal();
-        } else if (document.activeElement === searchInput && searchInput.value) {
-            searchInput.value = '';
-            clearSearchBtn.classList.remove('visible');
-            handleSearch();
-        }
+    // Esc to clear search
+    if (e.key === 'Escape' && document.activeElement === searchInput && searchInput.value) {
+        searchInput.value = '';
+        clearSearchBtn.classList.remove('visible');
+        handleSearch();
     }
 }
