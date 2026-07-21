@@ -1340,22 +1340,42 @@ function createPreviewCard(link) {
     const iframe = card.querySelector(`#iframe-${link.id}`);
 
     if (iframe) {
-        // Timeout para detectar se travou carregando
-        const timeoutId = setTimeout(() => {
-            // Se não carregou em 3 segundos, provavelmente bloqueou - remover card
-            card.remove();
-        }, 3000);
+        let iframeLoaded = false;
 
-        // Se conseguir carregar, limpar timeout
+        // Se conseguir carregar, marcar como loaded
         iframe.addEventListener('load', () => {
-            clearTimeout(timeoutId);
+            iframeLoaded = true;
+            try {
+                // Tentar acessar conteúdo para verificar se foi de verdade carregado
+                if (iframe.contentDocument || iframe.contentWindow) {
+                    // Conseguiu acessar - está funcionando
+                }
+            } catch (e) {
+                // Bloqueado por CORS - remover card
+                card.remove();
+            }
         });
 
-        // Erro ao carregar - remover card
+        // Erro ao carregar
         iframe.addEventListener('error', () => {
-            clearTimeout(timeoutId);
             card.remove();
         });
+
+        // Timeout para detectar bloqueio
+        setTimeout(() => {
+            if (!iframeLoaded) {
+                // Não carregou em 3 segundos - provavelmente bloqueado
+                try {
+                    // Verificar se consegue acessar o conteúdo
+                    if (!iframe.contentDocument && !iframe.contentWindow.document) {
+                        card.remove();
+                    }
+                } catch (e) {
+                    // Bloqueado - remover
+                    card.remove();
+                }
+            }
+        }, 3000);
     }
 
     // Event listener para favoritar
