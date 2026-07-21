@@ -1342,25 +1342,49 @@ function createPreviewCard(link) {
     const iframe = card.querySelector(`#iframe-${link.id}`);
     const container = card.querySelector(`#iframe-container-${link.id}`);
 
-    if (iframe) {
-        let iframeLoaded = false;
+    if (iframe && container) {
+        let loadAttempted = false;
 
-        // Se conseguir carregar
-        iframe.addEventListener('load', () => {
-            iframeLoaded = true;
+        // Usar MutationObserver para detectar mudanças no iframe
+        const observer = new MutationObserver(() => {
+            try {
+                // Se conseguir acessar, está OK
+                if (iframe.contentDocument || iframe.contentWindow) {
+                    observer.disconnect();
+                }
+            } catch (e) {
+                // Bloqueado - mostrar fallback
+                observer.disconnect();
+                showPreviewFallback(container, link, emoji, gradient);
+            }
         });
 
-        // Erro ao carregar - mostrar fallback
+        // Se carregar
+        iframe.addEventListener('load', () => {
+            loadAttempted = true;
+            try {
+                if (iframe.contentDocument) {
+                    // Conseguiu - está funcionando
+                    observer.disconnect();
+                }
+            } catch (e) {
+                showPreviewFallback(container, link, emoji, gradient);
+            }
+        });
+
+        // Erro ao carregar
         iframe.addEventListener('error', () => {
+            observer.disconnect();
             showPreviewFallback(container, link, emoji, gradient);
         });
 
-        // Timeout para detectar bloqueio (site não responsivo)
+        // Timeout agressivo - 2 segundos
         setTimeout(() => {
-            if (!iframeLoaded) {
+            if (!loadAttempted) {
+                observer.disconnect();
                 showPreviewFallback(container, link, emoji, gradient);
             }
-        }, 2500);
+        }, 2000);
     }
 
     // Event listener para favoritar
