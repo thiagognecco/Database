@@ -300,6 +300,17 @@ async function init() {
     // Categories bar "Todas" button
     document.querySelector('[data-category=""]')?.addEventListener('click', () => selectCategory(''));
 
+    // Tags toggle button
+    const tagsToggleBtn = document.getElementById('tags-toggle-btn');
+    const tagsPanel = document.getElementById('tags-panel');
+    if (tagsToggleBtn) {
+        tagsToggleBtn.addEventListener('click', () => {
+            const isExpanded = tagsPanel.style.display !== 'none';
+            tagsPanel.style.display = isExpanded ? 'none' : 'block';
+            tagsToggleBtn.classList.toggle('expanded', !isExpanded);
+        });
+    }
+
     // Clear tags button
     clearTagsBtn.addEventListener('click', clearAllTags);
 

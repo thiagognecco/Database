@@ -81,14 +81,17 @@
             <button id="categories-scroll-right" class="categories-scroll" style="display:none;">→</button>
         </div>
 
-        <!-- BARRA DE TAGS/MARCADORES -->
+        <!-- BARRA DE TAGS/MARCADORES COLAPSÍVEL -->
         <div class="tags-bar">
-            <div class="tags-header">
-                <span>🏷️ Marcadores:</span>
-                <button id="clear-tags-btn" class="btn btn-small" style="display:none;">Limpar</button>
-            </div>
-            <div id="tags-list" class="tags-list">
-                <!-- Tags carregadas dinamicamente -->
+            <button id="tags-toggle-btn" class="tags-toggle-btn">
+                <span>🏷️ Marcadores</span>
+                <span class="toggle-arrow">▼</span>
+            </button>
+            <div id="tags-panel" class="tags-panel" style="display: none;">
+                <div id="tags-list" class="tags-list">
+                    <!-- Tags carregadas dinamicamente -->
+                </div>
+                <button id="clear-tags-btn" class="btn btn-small" style="display:none; margin-top: 12px; width: 100%;">Limpar Seleção</button>
             </div>
             <div id="selected-tags" class="selected-tags"></div>
         </div>

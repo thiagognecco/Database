@@ -291,12 +291,53 @@ header h1 {
     border-bottom: 1px solid var(--border-color);
 }
 
-.tags-header {
+.tags-toggle-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    font-weight: 500;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-weight: 600;
     color: var(--text-dark);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+}
+
+.tags-toggle-btn:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.tags-toggle-btn .toggle-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    font-size: 0.8em;
+}
+
+.tags-toggle-btn.expanded .toggle-arrow {
+    transform: rotate(180deg);
+}
+
+.tags-panel {
+    padding: 12px 0;
+    border-top: 1px solid var(--border-color);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
 }
 
 .tags-list {
