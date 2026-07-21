@@ -2249,13 +2249,7 @@ body.dark-mode .ai-message .message-content {
 
 /* ===== LAYOUT MODES ===== */
 
-/* Grid Mode (Cards Mini) */
-.links-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    margin-bottom: 30px;
-}
+/* Grid Mode (Cards Mini) - REMOVED DUPLICATE, using main definition above */
 
 /* Lista Densa Mode */
 .links-list-dense {
