@@ -1030,6 +1030,37 @@ function getTruncatedTags(categoria, tema, maxCount = 4) {
     return tags.slice(0, maxCount).map(tag => `#${tag.toLowerCase()}`).join(' ');
 }
 
+// Helper functions for card redesign v3
+function formatTags(tagsString) {
+    if (!tagsString) return '';
+    try {
+        const tags = JSON.parse(tagsString);
+        return tags.slice(0, 3).map(tag => `#${tag.toLowerCase()}`).join(' ');
+    } catch {
+        return '';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+}
+
+function getGradientForCategory(categoria) {
+    const gradients = {
+        'educacao': 'linear-gradient(135deg, #22C55E, #16a34a)',
+        'sap': 'linear-gradient(135deg, #1E3A8A, #1e40af)',
+        'tecnologia': 'linear-gradient(135deg, #1E3A8A, #1e40af)',
+        'receita': 'linear-gradient(135deg, #FF8C00, #FF6B35)',
+        'video': 'linear-gradient(135deg, #DC2626, #b91c1c)',
+        'artigo': 'linear-gradient(135deg, #A855F7, #9333ea)',
+        'ia': 'linear-gradient(135deg, #8B5CF6, #7c3aed)',
+    };
+    const key = categoria?.toLowerCase().replace(/\s+/g, '').replace(/[àáâãäå]/g, 'a').replace(/[èéêë]/g, 'e').replace(/[ìíîï]/g, 'i').replace(/[òóôõö]/g, 'o').replace(/[ùúûü]/g, 'u') || 'default';
+    return gradients[key] || 'linear-gradient(135deg, #6366f1, #4f46e5)';
+}
+
 function createLinkCard(link, mode = 'grid') {
     // Se modo lista densa, usar função alternativa
     if (mode === 'list-dense') {
@@ -1063,18 +1094,33 @@ function createLinkCard(link, mode = 'grid') {
             </div>
         `;
     } else {
-        // Link normal - Cards Mini
+        // Link normal - Cards Mini with Redesign v3
+        const gradient = getGradientForCategory(link.categoria);
+        const description = link.resumo ? escapeHtml(link.resumo.substring(0, 100)) : '';
+        const tags = formatTags(link.tags);
+        const date = formatDate(link.atualizado_em || link.criado_em);
+        const platform = escapeHtml(link.plataforma || '');
+        const sourceInfo = platform || 'Link';
+
         card.innerHTML = `
-            <div class="mini-icon">${emoji}</div>
-            <div class="mini-category">${escapeHtml(categoria)}</div>
-            <div class="mini-title">
-                <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
+            <div class="card-image-container" style="background: ${gradient};">
+                <div class="card-image-overlay"></div>
+                <div class="mini-icon-badge">${emoji}</div>
             </div>
-            <div class="mini-actions">
-                <button class="btn-mini favorite-btn ${link.favorito ? 'active' : ''}" data-id="${link.id}" title="Favoritar">
-                    ${link.favorito ? '⭐' : '☆'}
-                </button>
-                <button class="btn-mini btn-share" data-link-id="${link.id}" title="Copiar">🔗</button>
+            <div class="card-content">
+                <div class="mini-category">${escapeHtml(categoria)}</div>
+                <div class="mini-title">
+                    <a href="#" class="card-link" data-link-id="${link.id}">${escapeHtml(link.titulo || link.url)}</a>
+                </div>
+                ${description ? `<div class="mini-description">${description}</div>` : ''}
+                ${tags ? `<div class="mini-tags">${tags}</div>` : ''}
+                ${sourceInfo || date ? `<div class="mini-source">${sourceInfo}${date ? ' • ' + date : ''}</div>` : ''}
+                <div class="mini-actions">
+                    <button class="btn-mini favorite-btn ${link.favorito ? 'active' : ''}" data-id="${link.id}" title="Favoritar">
+                        ${link.favorito ? '⭐' : '☆'}
+                    </button>
+                    <button class="btn-mini btn-share" data-link-id="${link.id}" title="Copiar">🔗</button>
+                </div>
             </div>
         `;
     }
