@@ -57,7 +57,8 @@ body {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 40px;
+    padding: 20px 40px 40px 40px;
+    overflow-x: hidden;
 }
 
 /* Header */
@@ -522,8 +523,10 @@ header h1 {
 .links-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
+    gap: 15px;
     margin-bottom: 30px;
+    width: 100%;
+    max-width: calc(100% - 0px);
 }
 
 .link-card {
