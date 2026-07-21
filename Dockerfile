@@ -15,5 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
-# Run gunicorn with PORT env variable
-CMD gunicorn -w 2 -b 0.0.0.0:${PORT:-8080} -k uvicorn.workers.UvicornWorker app.main:app
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
+
+# Run entrypoint
+ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
