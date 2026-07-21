@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alternativas de Layout - Lista de Links</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        /* ============== OPÇÃO 1: TABELA DENSA ============== */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .col-title {
+            font-weight: 600;
+            color: #333;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .col-url {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .col-category {
+            background: #e8eaf6;
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .col-tags {
+            font-size: 0.8rem;
+            color: #999;
+        }
+
+        /* ============== OPÇÃO 2: LISTA COMPACTA ============== */
+        .compact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .compact-item {
+            display: grid;
+            grid-template-columns: 40px 1fr 120px 80px auto;
+            gap: 16px;
+            align-items: center;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 200ms;
+        }
+
+        .compact-item:hover {
+            background: #f0f2ff;
+            border-left-color: #764ba2;
+        }
+
+        .compact-icon {
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .compact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .compact-title {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .compact-desc {
+            font-size: 0.85rem;
+            color: #999;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .compact-category {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #667eea;
+        }
+
+        .compact-tags {
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .compact-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            border: 1px solid #eee;
+            transition: all 150ms;
+        }
+
+        .btn-small:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* ============== OPÇÃO 3: CARDS MINIATURA ============== */
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .mini-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 12px;
+            transition: all 200ms;
+        }
+
+        .mini-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .mini-card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .mini-card-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #333;
+            margin-bottom: 4px;
+            line-clamp: 2;
+        }
+
+        .mini-card-category {
+            font-size: 0.7rem;
+            color: #667eea;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .mini-card-footer {
+            display: flex;
+            gap: 6px;
+            font-size: 0.7rem;
+        }
+
+        /* ============== OPÇÃO 4: LISTA LADO A LADO ============== */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .two-col-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .two-col-item:hover {
+            background: #f0f2ff;
+        }
+
+        .two-col-icon {
+            font-size: 1.8rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .two-col-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .two-col-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .two-col-url {
+            font-size: 0.75rem;
+            color: #667eea;
+            margin-bottom: 6px;
+        }
+
+        .two-col-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        /* ============== OPÇÃO 5: GALERIA DENSA ============== */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .gallery-item {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            transition: all 200ms;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .gallery-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .gallery-title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #333;
+            margin-bottom: 4px;
+            line-clamp: 2;
+        }
+
+        .gallery-category {
+            font-size: 0.65rem;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .compact-item {
+                grid-template-columns: 1fr;
+            }
+
+            .mini-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        .comparison-note {
+            background: #e8eaf6;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #667eea;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 5 Alternativas de Layout - Qual seu pai prefere?</h1>
+
+        <!-- OPÇÃO 1 -->
+        <div class="section">
+            <h2>1️⃣ TABELA DENSA (Mais informação por linha)</h2>
+            <p style="margin-bottom: 16px; color: #666;">Maximiza dados visíveis. Perfeito para análise rápida. Scrollável horizontalmente em mobile.</p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>URL</th>
+                            <th>Categoria</th>
+                            <th>Tags</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="col-title">Python Official Site</td>
+                            <td><a href="#" class="col-url">python.org</a></td>
+                            <td><span class="col-category">TEC</span></td>
+                            <td class="col-tags">Programming, Python</td>
+                            <td style="text-align: center;">📌 ⭐</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">FreeCodeCamp - Learn Web Development</td>
+                            <td><a href="#" class="col-url">freecodecamp.org</a></td>
+                            <td><span class="col-category">EDU</span></td>
+                            <td class="col-tags">Education, Free, Courses</td>
+                            <td style="text-align: center;">📌 ⭐</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">GitHub - Where the world builds software</td>
+                            <td><a href="#" class="col-url">github.com</a></td>
+                            <td><span class="col-category">DEV</span></td>
+                            <td class="col-tags">Git, Collaboration, DevOps</td>
+                            <td style="text-align: center;">📌 ⭐</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">Figma - Collaborative design tool</td>
+                            <td><a href="#" class="col-url">figma.com</a></td>
+                            <td><span class="col-category">DESIGN</span></td>
+                            <td class="col-tags">UI/UX, Design, Collaboration</td>
+                            <td style="text-align: center;">📌 ⭐</td>
+                        </tr>
+                        <tr>
+                            <td class="col-title">MDN Web Docs</td>
+                            <td><a href="#" class="col-url">mdn.io</a></td>
+                            <td><span class="col-category">REF</span></td>
+                            <td class="col-tags">Documentation, Web, Reference</td>
+                            <td style="text-align: center;">📌 ⭐</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="comparison-note">
+                ✅ Vantagem: Máximo de informação por linha | ❌ Desvantagem: Menos visual, mais "spreadsheet"
+            </div>
+        </div>
+
+        <!-- OPÇÃO 2 -->
+        <div class="section">
+            <h2>2️⃣ LISTA COMPACTA (Eficiente e moderna)</h2>
+            <p style="margin-bottom: 16px; color: #666;">Uma linha por link com informação essencial. Muito mais rápido de escanear que tabela.</p>
+
+            <div class="compact-list">
+                <div class="compact-item">
+                    <div class="compact-icon">💻</div>
+                    <div class="compact-info">
+                        <div class="compact-title">Python Official Site</div>
+                        <div class="compact-desc">Linguagem de programação versátil</div>
+                    </div>
+                    <div class="compact-category">TEC</div>
+                    <div class="compact-tags">Python, Prog</div>
+                    <div class="compact-actions">
+                        <button class="btn-small" title="Copiar">🔗</button>
+                        <button class="btn-small" title="Favoritar">⭐</button>
+                    </div>
+                </div>
+
+                <div class="compact-item">
+                    <div class="compact-icon">📚</div>
+                    <div class="compact-info">
+                        <div class="compact-title">FreeCodeCamp</div>
+                        <div class="compact-desc">Plataforma gratuita com cursos</div>
+                    </div>
+                    <div class="compact-category">EDU</div>
+                    <div class="compact-tags">Education, Free</div>
+                    <div class="compact-actions">
+                        <button class="btn-small" title="Copiar">🔗</button>
+                        <button class="btn-small" title="Favoritar">⭐</button>
+                    </div>
+                </div>
+
+                <div class="compact-item">
+                    <div class="compact-icon">🚀</div>
+                    <div class="compact-info">
+                        <div class="compact-title">GitHub</div>
+                        <div class="compact-desc">Controle de versão e colaboração</div>
+                    </div>
+                    <div class="compact-category">DEV</div>
+                    <div class="compact-tags">Git, Collab</div>
+                    <div class="compact-actions">
+                        <button class="btn-small" title="Copiar">🔗</button>
+                        <button class="btn-small" title="Favoritar">⭐</button>
+                    </div>
+                </div>
+
+                <div class="compact-item">
+                    <div class="compact-icon">🎨</div>
+                    <div class="compact-info">
+                        <div class="compact-title">Figma</div>
+                        <div class="compact-desc">Design colaborativo na nuvem</div>
+                    </div>
+                    <div class="compact-category">DESIGN</div>
+                    <div class="compact-tags">UI/UX, Collab</div>
+                    <div class="compact-actions">
+                        <button class="btn-small" title="Copiar">🔗</button>
+                        <button class="btn-small" title="Favoritar">⭐</button>
+                    </div>
+                </div>
+
+                <div class="compact-item">
+                    <div class="compact-icon">📖</div>
+                    <div class="compact-info">
+                        <div class="compact-title">MDN Web Docs</div>
+                        <div class="compact-desc">Documentação de web standards</div>
+                    </div>
+                    <div class="compact-category">REF</div>
+                    <div class="compact-tags">Docs, Web</div>
+                    <div class="compact-actions">
+                        <button class="btn-small" title="Copiar">🔗</button>
+                        <button class="btn-small" title="Favoritar">⭐</button>
+                    </div>
+                </div>
+            </div>
+            <div class="comparison-note">
+                ✅ Vantagem: Eficiente, espaço equilibrado | ✅ Modern look
+            </div>
+        </div>
+
+        <!-- OPÇÃO 3 -->
+        <div class="section">
+            <h2>3️⃣ CARDS MINIATURA (Grid compacto)</h2>
+            <p style="margin-bottom: 16px; color: #666;">Cards pequenos em grid. Mostra muitos links por tela. Mais visual.</p>
+
+            <div class="mini-grid">
+                <div class="mini-card">
+                    <div class="mini-card-icon">💻</div>
+                    <div class="mini-card-category">TEC</div>
+                    <div class="mini-card-title">Python Official Site</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-card-icon">📚</div>
+                    <div class="mini-card-category">EDU</div>
+                    <div class="mini-card-title">FreeCodeCamp</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-card-icon">🚀</div>
+                    <div class="mini-card-category">DEV</div>
+                    <div class="mini-card-title">GitHub</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-card-icon">🎨</div>
+                    <div class="mini-card-category">DESIGN</div>
+                    <div class="mini-card-title">Figma</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-card-icon">📖</div>
+                    <div class="mini-card-category">REF</div>
+                    <div class="mini-card-title">MDN Web Docs</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+
+                <div class="mini-card">
+                    <div class="mini-card-icon">💡</div>
+                    <div class="mini-card-category">INS</div>
+                    <div class="mini-card-title">Dribbble</div>
+                    <div class="mini-card-footer">
+                        <span>🔗</span>
+                        <span>⭐</span>
+                    </div>
+                </div>
+            </div>
+            <div class="comparison-note">
+                ✅ Vantagem: Muitos links visíveis, bonito | ❌ Info limitada por card
+            </div>
+        </div>
+
+        <!-- OPÇÃO 4 -->
+        <div class="section">
+            <h2>4️⃣ LISTA LADO A LADO (2 colunas)</h2>
+            <p style="margin-bottom: 16px; color: #666;">Lista compacta mas em 2 colunas. Aproveita mais a largura da tela.</p>
+
+            <div class="two-column">
+                <div class="two-col-item">
+                    <div class="two-col-icon">💻</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">Python Official Site</div>
+                        <div class="two-col-url">python.org</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">TEC</span>
+                            <span>Python, Programming</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-item">
+                    <div class="two-col-icon">📚</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">FreeCodeCamp</div>
+                        <div class="two-col-url">freecodecamp.org</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">EDU</span>
+                            <span>Education, Free</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-item">
+                    <div class="two-col-icon">🚀</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">GitHub</div>
+                        <div class="two-col-url">github.com</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">DEV</span>
+                            <span>Git, Collaboration</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-item">
+                    <div class="two-col-icon">🎨</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">Figma</div>
+                        <div class="two-col-url">figma.com</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">DESIGN</span>
+                            <span>UI/UX, Collaboration</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-item">
+                    <div class="two-col-icon">📖</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">MDN Web Docs</div>
+                        <div class="two-col-url">mdn.io</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">REF</span>
+                            <span>Documentation, Web</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="two-col-item">
+                    <div class="two-col-icon">💡</div>
+                    <div class="two-col-content">
+                        <div class="two-col-title">Dribbble</div>
+                        <div class="two-col-url">dribbble.com</div>
+                        <div class="two-col-meta">
+                            <span style="color: #667eea;">INS</span>
+                            <span>Design, Community</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="comparison-note">
+                ✅ Vantagem: Bom balanço entre info e densidade | ✅ Aproveita espaço
+            </div>
+        </div>
+
+        <!-- OPÇÃO 5 -->
+        <div class="section">
+            <h2>5️⃣ GALERIA DENSA (Tipo Pinterest)</h2>
+            <p style="margin-bottom: 16px; color: #666;">Ícone + Título. Super compacto. Máximos links por tela.</p>
+
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-icon">💻</div>
+                    <div class="gallery-title">Python Official</div>
+                    <div class="gallery-category">TEC</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">📚</div>
+                    <div class="gallery-title">FreeCodeCamp</div>
+                    <div class="gallery-category">EDU</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🚀</div>
+                    <div class="gallery-title">GitHub</div>
+                    <div class="gallery-category">DEV</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🎨</div>
+                    <div class="gallery-title">Figma</div>
+                    <div class="gallery-category">DESIGN</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">📖</div>
+                    <div class="gallery-title">MDN Web Docs</div>
+                    <div class="gallery-category">REF</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">💡</div>
+                    <div class="gallery-title">Dribbble</div>
+                    <div class="gallery-category">INS</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🔍</div>
+                    <div class="gallery-title">Stack Overflow</div>
+                    <div class="gallery-category">Q&A</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🎓</div>
+                    <div class="gallery-title">Udemy</div>
+                    <div class="gallery-category">EDU</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🌐</div>
+                    <div class="gallery-title">CSS Tricks</div>
+                    <div class="gallery-category">TEC</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🎬</div>
+                    <div class="gallery-title">YouTube</div>
+                    <div class="gallery-category">VID</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">📝</div>
+                    <div class="gallery-title">Medium</div>
+                    <div class="gallery-category">BLOG</div>
+                </div>
+
+                <div class="gallery-item">
+                    <div class="gallery-icon">🛠️</div>
+                    <div class="gallery-title">npm</div>
+                    <div class="gallery-category">TOOLS</div>
+                </div>
+            </div>
+            <div class="comparison-note">
+                ✅ Vantagem: MÁXIMO de links visíveis | ❌ Pouca info por item
+            </div>
+        </div>
+
+        <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 40px;">
+            <h3>🤔 Qual você prefere?</h3>
+            <p><strong>1. TABELA:</strong> Para quem analisa dados (planilha)</p>
+            <p><strong>2. LISTA COMPACTA:</strong> Recomendado - bom balanço</p>
+            <p><strong>3. CARDS MINI:</strong> Para quem quer visual bonito</p>
+            <p><strong>4. LISTA 2 COLUNAS:</strong> Aproveita bem a tela</p>
+            <p><strong>5. GALERIA:</strong> Ver muitos links de uma vez</p>
+        </div>
+    </div>
+</body>
+</html>

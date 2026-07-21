@@ -1,0 +1,52 @@
+[
+  {
+    "link_id": 2,
+    "titulo": "Python Official Site",
+    "url": "https://www.python.org",
+    "categoria_antiga": "Programação",
+    "categoria_nova": "Tecnologia",
+    "tags_novas": "Python, Programação, Documentação, Download, Desenvolvimento",
+    "resumo_novo": "Portal oficial da linguagem de programação Python, oferecendo downloads, documentação completa, tutoriais e recursos essenciais para desenvolvedores de todos os níveis. Centro de referência para aprender e utilizar Python em projetos de desenvolvimento de software.",
+    "custo": 0.0006304
+  },
+  {
+    "link_id": 3,
+    "titulo": "Medium Blog Platform",
+    "url": "https://medium.com",
+    "categoria_antiga": "Educação",
+    "categoria_nova": "Tecnologia",
+    "tags_novas": "plataforma de blogs, publicação de conteúdo, artigos, comunidade de escritores, leitura online",
+    "resumo_novo": "Plataforma digital de publicação e leitura de artigos que permite aos usuários compartilhar conhecimento e descobrir conteúdo sobre diversos temas. Conecta leitores e escritores em uma comunidade colaborativa focada em storytelling e pensamento crítico.",
+    "custo": 0.0007080000000000001
+  },
+  {
+    "link_id": 4,
+    "titulo": "YouTube Video Platform",
+    "url": "https://www.youtube.com",
+    "categoria_antiga": "Educação",
+    "categoria_nova": "Tecnologia",
+    "tags_novas": "streaming, vídeos, plataforma digital, conteúdo, mídia social",
+    "resumo_novo": "Plataforma de streaming de vídeos que permite aos usuários assistir, compartilhar e publicar conteúdo sobre diversos temas. Principal repositório global de vídeos com ferramentas para criadores de conteúdo e comunidades de espectadores.",
+    "custo": 0.000672
+  },
+  {
+    "link_id": 5,
+    "titulo": "Stack Overflow Q&A",
+    "url": "https://stackoverflow.com",
+    "categoria_antiga": "Tecnologia",
+    "categoria_nova": "Tecnologia",
+    "tags_novas": "programação, desenvolvimento, comunidade, suporte técnico, código",
+    "resumo_novo": "Plataforma colaborativa de perguntas e respostas para programadores resolverem dúvidas técnicas e compartilharem soluções de código. Maior comunidade global de desenvolvedores em busca de respostas e conhecimento especializado.",
+    "custo": 0.000648
+  },
+  {
+    "link_id": 6,
+    "titulo": "GitHub Repository Platform",
+    "url": "https://github.com",
+    "categoria_antiga": "Desenvolvimento",
+    "categoria_nova": "Ferramenta",
+    "tags_novas": "controle de versão, desenvolvimento, colaboração, repositório, Git",
+    "resumo_novo": "Plataforma web para hospedagem, versionamento e colaboração em projetos de código usando Git, essencial para desenvolvimento de software individual e em equipe. Oferece recursos de controle de versão, rastreamento de issues e integração com ferramentas de CI/CD.",
+    "custo": 0.0006672
+  }
+]

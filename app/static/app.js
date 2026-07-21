@@ -2,7 +2,7 @@
 
 const API_BASE = '/api';
 let currentPage = 0;
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 20;
 
 // Broadcast Channel for real-time sync between tabs
 let broadcastChannel = null;
