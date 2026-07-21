@@ -55,6 +55,10 @@ let currentFavoriteFilter = false;
 // Modo de visualização (grid/cards, lista densa) - padrão grid para Fase 1
 let viewMode = localStorage.getItem('linkViewMode') || 'grid';
 
+// Preview modal
+let previewLinkUrl = '';
+let previewLinkTitle = '';
+
 // DOM Elements - inicializadas em init()
 let searchInput, clearSearchBtn, categoryFilter, platformFilter, favoritesFilter;
 let linksContainer, loadingEl, emptyStateEl, resultsCount, newLinkBtn;
@@ -344,6 +348,38 @@ async function init() {
             viewMode = e.target.value;
             localStorage.setItem('linkViewMode', viewMode);
             applyViewMode();
+        });
+    }
+
+    // "Todos" button - reset everything
+    const allLinksBtn = document.getElementById('all-links-btn');
+    if (allLinksBtn) {
+        allLinksBtn.addEventListener('click', () => {
+            // Reset search
+            searchInput.value = '';
+            clearSearchBtn.classList.remove('visible');
+            currentSearch = '';
+
+            // Reset category
+            selectCategory('');
+            const catDropdown = document.getElementById('categories-dropdown');
+            if (catDropdown) catDropdown.value = '';
+
+            // Reset tags
+            selectedTags.clear();
+            updateSelectedTagsDisplay();
+
+            // Reset filters
+            categoryFilter.value = '';
+            platformFilter.value = '';
+            favoritesFilter.checked = false;
+            currentFavoriteFilter = false;
+
+            // Reset page
+            currentPage = 0;
+
+            // Reload
+            handleSearch();
         });
     }
 
@@ -1179,7 +1215,7 @@ function createLinkCard(link, mode = 'grid') {
         if (cardLinkEl) {
             cardLinkEl.addEventListener('click', (e) => {
                 e.preventDefault();
-                showLinkDetail(link);
+                handleCardClick(link);
             });
         }
     }
@@ -1301,7 +1337,7 @@ function createLinkListItem(link) {
     // Event listeners
     item.querySelector('.list-titulo').addEventListener('click', (e) => {
         e.preventDefault();
-        showLinkDetail(link);
+        handleCardClick(link);
     });
 
     item.querySelector('.btn-list-edit').addEventListener('click', (e) => {
@@ -2158,6 +2194,45 @@ function toggleDarkMode() {
     showSuccess(isDarkMode ? '🌙 Modo Escuro ativado' : '☀️ Modo Claro ativado');
 }
 
+// Preview Modal Functions
+function openPreview(url, title) {
+    previewLinkUrl = url;
+    previewLinkTitle = title;
+
+    const modal = document.getElementById('preview-modal');
+    const titleEl = document.getElementById('preview-title');
+    const urlEl = document.getElementById('preview-url');
+    const iframe = document.getElementById('preview-iframe');
+
+    titleEl.textContent = title;
+    urlEl.textContent = url;
+    iframe.src = url;
+
+    modal.style.display = 'flex';
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('preview-modal');
+    const iframe = document.getElementById('preview-iframe');
+    modal.style.display = 'none';
+    iframe.src = '';
+}
+
+function openPreviewLink() {
+    if (previewLinkUrl) {
+        window.open(previewLinkUrl, '_blank');
+    }
+}
+
+// Override card click handler to check preview mode
+function handleCardClick(link) {
+    if (viewMode === 'preview') {
+        openPreview(link.url, link.titulo || link.url);
+    } else {
+        showLinkDetail(link);
+    }
+}
+
 function handleKeyboardShortcuts(e) {
     // Ctrl+K or Cmd+K to focus search
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
@@ -2172,10 +2247,15 @@ function handleKeyboardShortcuts(e) {
         toggleAIChat();
     }
 
-    // Esc to clear search
-    if (e.key === 'Escape' && document.activeElement === searchInput && searchInput.value) {
-        searchInput.value = '';
-        clearSearchBtn.classList.remove('visible');
-        handleSearch();
+    // Esc to clear search or close preview
+    if (e.key === 'Escape') {
+        const previewModal = document.getElementById('preview-modal');
+        if (previewModal && previewModal.style.display === 'flex') {
+            closePreviewModal();
+        } else if (document.activeElement === searchInput && searchInput.value) {
+            searchInput.value = '';
+            clearSearchBtn.classList.remove('visible');
+            handleSearch();
+        }
     }
 }

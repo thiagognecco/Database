@@ -2632,3 +2632,119 @@ body.dark-mode .ai-message .message-content {
         font-size: 0.8rem;
     }
 }
+
+/* Preview Modal */
+.preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.preview-modal-content {
+    background: var(--bg-white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.preview-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    gap: 16px;
+}
+
+.preview-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.preview-modal-header h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.2em;
+    color: var(--text-dark);
+    word-break: break-word;
+}
+
+.preview-modal-header p {
+    margin: 0;
+    font-size: 0.9em;
+    color: var(--text-light);
+    word-break: break-all;
+}
+
+.preview-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.preview-close-btn:hover {
+    color: var(--text-dark);
+}
+
+.preview-modal-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.preview-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.preview-modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    justify-content: flex-end;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .preview-modal-content {
+        width: 95%;
+        height: 90vh;
+    }
+
+    .preview-modal-header {
+        flex-direction: column;
+    }
+
+    .preview-modal-footer {
+        flex-direction: column;
+    }
+
+    .preview-modal-footer .btn {
+        width: 100%;
+    }
+}
