@@ -522,8 +522,8 @@ header h1 {
 /* Links Grid */
 .links-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
     margin-bottom: 30px;
     width: 100%;
     overflow: clip;
