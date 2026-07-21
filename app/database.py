@@ -63,30 +63,32 @@ def set_config(db, chave: str, valor: str) -> None:
 
 
 def init_db():
-    """Initialize database: create tables and FTS5 virtual table."""
+    """Initialize database: create tables and FTS5 virtual table (SQLite only)."""
     # Create regular tables
     Base.metadata.create_all(bind=engine)
 
-    # Create FTS5 virtual table for full-text search
-    with engine.begin() as conn:
-        # Drop if exists (for dev)
-        try:
-            conn.execute(text("DROP TABLE IF EXISTS links_fts"))
-        except:
-            pass
+    # FTS5 is SQLite only - skip for PostgreSQL
+    if not DATABASE_URL.startswith("postgresql"):
+        # Create FTS5 virtual table for full-text search (SQLite)
+        with engine.begin() as conn:
+            # Drop if exists (for dev)
+            try:
+                conn.execute(text("DROP TABLE IF EXISTS links_fts"))
+            except:
+                pass
 
-        # Create FTS5 table with unicode61 tokenizer
-        conn.execute(text("""
-            CREATE VIRTUAL TABLE links_fts USING fts5(
-                id UNINDEXED,
-                titulo,
-                resumo,
-                autor,
-                categoria,
-                tema,
-                tokenize = 'unicode61 remove_diacritics 2'
-            )
-        """))
+            # Create FTS5 table with unicode61 tokenizer
+            conn.execute(text("""
+                CREATE VIRTUAL TABLE links_fts USING fts5(
+                    id UNINDEXED,
+                    titulo,
+                    resumo,
+                    autor,
+                    categoria,
+                    tema,
+                    tokenize = 'unicode61 remove_diacritics 2'
+                )
+            """))
 
         # Create trigger to sync FTS5 on INSERT
         try:
