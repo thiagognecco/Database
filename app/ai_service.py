@@ -319,6 +319,82 @@ Mantenha claro, informativo, e preferencialmente com menos de 100 caracteres."""
         return ""
 
 
+async def generate_structured_link_data(url: str, titulo: str = "", resumo: str = "") -> dict:
+    """
+    Generate structured link data (title, description, keywords) using Haiku.
+    Used for card redesign v3 to show rich metadata.
+    """
+    global API_CALL_COUNT
+
+    if not titulo and not url:
+        return {"title": "", "description": "", "keywords": []}
+
+    # Check cache
+    cache_key = f"structured:{url}:{titulo}"
+    cached = ai_cache.get(cache_key)
+    if cached:
+        logger.info(f"Cache hit for structured data of {url}")
+        return cached
+
+    # Check rate limit
+    wait_time = rate_limiter.wait_if_needed()
+    if wait_time > 0:
+        logger.warning(f"Rate limited, skipping structured data generation")
+        return {"title": titulo or "", "description": resumo or "", "keywords": []}
+
+    prompt = f"""Analise este link e retorne dados estruturados em JSON válido.
+
+URL: {url}
+Título atual: {titulo}
+
+Retorne um JSON com:
+- "title": título melhorado e descritivo (máx 60 caracteres)
+- "description": descrição breve (máx 150 caracteres)
+- "keywords": array de 3-5 palavras-chave relevantes
+
+Responda APENAS com JSON válido, sem markdown, sem explicações extras.
+
+Exemplo format (mantenha este exato formato):
+{{"title": "...", "description": "...", "keywords": ["tag1", "tag2", "tag3"]}}"""
+
+    try:
+        message = client.messages.create(
+            model="claude-haiku-4-5-20241001",
+            max_tokens=300,
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        API_CALL_COUNT += 1
+        response_text = message.content[0].text.strip()
+
+        # Parse JSON
+        data = _parse_json_response(response_text)
+        if not data:
+            data = {"title": titulo, "description": resumo, "keywords": []}
+
+        # Ensure all fields exist
+        result = {
+            "title": data.get("title", titulo)[:60],
+            "description": data.get("description", resumo)[:150],
+            "keywords": data.get("keywords", [])[:5]
+        }
+
+        # Cache result
+        ai_cache.set(cache_key, result)
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error generating structured data: {e}")
+        return {
+            "title": titulo[:60] if titulo else "",
+            "description": resumo[:150] if resumo else "",
+            "keywords": []
+        }
+
+
 def get_ai_stats() -> dict:
     """Get AI service usage statistics."""
     return {

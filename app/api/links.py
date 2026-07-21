@@ -1,4 +1,5 @@
 """CRUD endpoints for links."""
+import json
 from typing import Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models import Link
 from app.database import get_db
 from app.schemas import LinkCreate, LinkUpdate
-from app.ai_service import categorize_link, generate_summary_with_ai
+from app.ai_service import categorize_link, generate_summary_with_ai, generate_structured_link_data
 
 router = APIRouter(prefix="/api/links", tags=["links"])
 
@@ -102,18 +103,27 @@ async def create_link(link: LinkCreate, db: Session = Depends(get_db)):
             import logging
             logging.warning(f"AI categorization failed: {e}")
 
-    # Generate summary with AI if not provided
+    # Generate structured link data with AI (title, description, keywords)
+    titulo = link.titulo
     resumo = link.resumo
-    if not resumo and link.titulo:
-        try:
-            resumo = await generate_summary_with_ai(link.titulo, link.url)
-        except Exception as e:
-            import logging
-            logging.warning(f"AI summary generation failed: {e}")
+    tags = link.tags or ""
+
+    try:
+        structured_data = await generate_structured_link_data(link.url, link.titulo or "", link.resumo or "")
+        if structured_data:
+            if structured_data.get("title"):
+                titulo = structured_data["title"]
+            if structured_data.get("description"):
+                resumo = structured_data["description"]
+            if structured_data.get("keywords"):
+                tags = json.dumps(structured_data["keywords"])
+    except Exception as e:
+        import logging
+        logging.warning(f"Structured data generation failed: {e}")
 
     new_link = Link(
         url=link.url,
-        titulo=link.titulo,
+        titulo=titulo,
         resumo=resumo,
         autor=link.autor,
         data=link_data,
@@ -122,6 +132,7 @@ async def create_link(link: LinkCreate, db: Session = Depends(get_db)):
         tema=tema,
         confiabilidade=confiabilidade,
         bot=link.bot,
+        tags=tags,
     )
 
     db.add(new_link)
