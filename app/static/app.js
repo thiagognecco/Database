@@ -1322,7 +1322,9 @@ function createPreviewCard(link) {
     const tagsText = tags.join(' • ');
     const platform = link.plataforma || 'Link';
     const emoji = getEmojiForCategory(link.categoria);
+    const gradient = getGradientForCategory(link.categoria);
 
+    // Criar com iframe primeiro
     card.innerHTML = `
         <div class="preview-iframe-container" id="iframe-container-${link.id}">
             <iframe id="iframe-${link.id}" src="${link.url}" sandbox="allow-same-origin" loading="lazy"></iframe>
@@ -1338,44 +1340,27 @@ function createPreviewCard(link) {
 
     // Detectar se o iframe foi bloqueado
     const iframe = card.querySelector(`#iframe-${link.id}`);
+    const container = card.querySelector(`#iframe-container-${link.id}`);
 
     if (iframe) {
         let iframeLoaded = false;
 
-        // Se conseguir carregar, marcar como loaded
+        // Se conseguir carregar
         iframe.addEventListener('load', () => {
             iframeLoaded = true;
-            try {
-                // Tentar acessar conteúdo para verificar se foi de verdade carregado
-                if (iframe.contentDocument || iframe.contentWindow) {
-                    // Conseguiu acessar - está funcionando
-                }
-            } catch (e) {
-                // Bloqueado por CORS - remover card
-                card.remove();
-            }
         });
 
-        // Erro ao carregar
+        // Erro ao carregar - mostrar fallback
         iframe.addEventListener('error', () => {
-            card.remove();
+            showPreviewFallback(container, link, emoji, gradient);
         });
 
-        // Timeout para detectar bloqueio
+        // Timeout para detectar bloqueio (site não responsivo)
         setTimeout(() => {
             if (!iframeLoaded) {
-                // Não carregou em 3 segundos - provavelmente bloqueado
-                try {
-                    // Verificar se consegue acessar o conteúdo
-                    if (!iframe.contentDocument && !iframe.contentWindow.document) {
-                        card.remove();
-                    }
-                } catch (e) {
-                    // Bloqueado - remover
-                    card.remove();
-                }
+                showPreviewFallback(container, link, emoji, gradient);
             }
-        }, 3000);
+        }, 2500);
     }
 
     // Event listener para favoritar
@@ -1389,6 +1374,39 @@ function createPreviewCard(link) {
     }
 
     return card;
+}
+
+// Mostrar fallback quando site bloqueia
+function showPreviewFallback(container, link, emoji, gradient) {
+    container.innerHTML = `
+        <div style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: ${gradient};
+            padding: 20px;
+            text-align: center;
+            color: white;
+            flex-direction: column;
+            gap: 12px;
+        ">
+            <div style="font-size: 3em; opacity: 0.9;">${emoji}</div>
+            <div style="font-size: 0.95em; font-weight: 600;">
+                ${escapeHtml(link.titulo || link.url)}
+            </div>
+            <div style="font-size: 0.85em; opacity: 0.8;">
+                ${escapeHtml(link.categoria || 'Link')}
+            </div>
+            <a href="${link.url}" target="_blank" style="
+                font-size: 0.8em;
+                color: white;
+                text-decoration: underline;
+                opacity: 0.7;
+                margin-top: 8px;
+            ">🔗 Abrir link</a>
+        </div>
+    `;
 }
 
 
