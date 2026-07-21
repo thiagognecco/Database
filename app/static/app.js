@@ -347,7 +347,7 @@ async function init() {
         viewModeSelect.addEventListener('change', (e) => {
             viewMode = e.target.value;
             localStorage.setItem('linkViewMode', viewMode);
-            applyViewMode();
+            handleSearch(); // Renderiza com o novo modo
         });
     }
 
