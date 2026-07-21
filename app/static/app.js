@@ -1338,13 +1338,12 @@ function createPreviewCard(link) {
 
     // Detectar se o iframe foi bloqueado
     const iframe = card.querySelector(`#iframe-${link.id}`);
-    const container = card.querySelector(`#iframe-container-${link.id}`);
 
     if (iframe) {
         // Timeout para detectar se travou carregando
         const timeoutId = setTimeout(() => {
-            // Se não carregou em 3 segundos, provavelmente bloqueou
-            showBlockedFallback(container, link, emoji, platform);
+            // Se não carregou em 3 segundos, provavelmente bloqueou - remover card
+            card.remove();
         }, 3000);
 
         // Se conseguir carregar, limpar timeout
@@ -1352,10 +1351,10 @@ function createPreviewCard(link) {
             clearTimeout(timeoutId);
         });
 
-        // Erro ao carregar
+        // Erro ao carregar - remover card
         iframe.addEventListener('error', () => {
             clearTimeout(timeoutId);
-            showBlockedFallback(container, link, emoji, platform);
+            card.remove();
         });
     }
 
@@ -1372,34 +1371,6 @@ function createPreviewCard(link) {
     return card;
 }
 
-// Mostrar fallback quando site bloqueia preview
-function showBlockedFallback(container, link, emoji, platform) {
-    const gradient = getGradientForCategory(link.categoria);
-    container.innerHTML = `
-        <div style="
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            background: ${gradient};
-            padding: 20px;
-            text-align: center;
-            color: white;
-        ">
-            <div style="font-size: 2.5em; margin-bottom: 12px;">📷</div>
-            <div style="font-size: 0.95em; font-weight: 600; margin-bottom: 8px;">
-                Site não permite preview
-            </div>
-            <div style="font-size: 0.85em; opacity: 0.9; margin-bottom: 12px;">
-                ${emoji} ${escapeHtml(link.categoria || 'Link')}
-            </div>
-            <div style="font-size: 0.8em; opacity: 0.8;">
-                ${escapeHtml(platform)}
-            </div>
-        </div>
-    `;
-}
 
 // Nova função para renderizar item da lista (2 linhas compacto)
 function createLinkListItem(link) {
