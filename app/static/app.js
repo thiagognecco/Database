@@ -1311,7 +1311,7 @@ function toggleCardMode(cardElement, mode) {
     }
 }
 
-// Função para criar card com preview da página
+// Função para criar card com preview estático da página
 function createPreviewCard(link) {
     const card = document.createElement('div');
     card.className = 'link-card-preview';
@@ -1320,14 +1320,38 @@ function createPreviewCard(link) {
     if (link.categoria) tags.push(link.categoria);
     if (link.tema) tags.push(link.tema);
     const tagsText = tags.join(' • ');
-    const platform = link.plataforma || 'Link';
     const emoji = getEmojiForCategory(link.categoria);
     const gradient = getGradientForCategory(link.categoria);
 
-    // Criar com iframe primeiro
+    // Card estático sem iframe (sem problemas de bloqueio)
     card.innerHTML = `
-        <div class="preview-iframe-container" id="iframe-container-${link.id}">
-            <iframe id="iframe-${link.id}" src="${link.url}" sandbox="allow-same-origin" loading="lazy"></iframe>
+        <div class="preview-iframe-container" style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: ${gradient};
+            padding: 20px;
+            text-align: center;
+            color: white;
+            flex-direction: column;
+            gap: 12px;
+        ">
+            <div style="font-size: 3.5em;">${emoji}</div>
+            <div style="font-size: 0.95em; font-weight: 600; line-height: 1.3;">
+                ${escapeHtml(link.titulo || link.url)}
+            </div>
+            <div style="font-size: 0.85em; opacity: 0.8;">
+                ${escapeHtml(link.categoria || 'Link')}
+            </div>
+            <a href="${link.url}" target="_blank" style="
+                font-size: 0.8em;
+                color: white;
+                text-decoration: underline;
+                opacity: 0.7;
+                margin-top: 8px;
+                cursor: pointer;
+            ">🔗 Abrir link</a>
         </div>
         <div class="preview-card-footer">
             <div class="preview-card-title" title="${escapeHtml(link.titulo || link.url)}">${escapeHtml(link.titulo || link.url)}</div>
@@ -1337,55 +1361,6 @@ function createPreviewCard(link) {
             </button>
         </div>
     `;
-
-    // Detectar se o iframe foi bloqueado
-    const iframe = card.querySelector(`#iframe-${link.id}`);
-    const container = card.querySelector(`#iframe-container-${link.id}`);
-
-    if (iframe && container) {
-        let loadAttempted = false;
-
-        // Usar MutationObserver para detectar mudanças no iframe
-        const observer = new MutationObserver(() => {
-            try {
-                // Se conseguir acessar, está OK
-                if (iframe.contentDocument || iframe.contentWindow) {
-                    observer.disconnect();
-                }
-            } catch (e) {
-                // Bloqueado - mostrar fallback
-                observer.disconnect();
-                showPreviewFallback(container, link, emoji, gradient);
-            }
-        });
-
-        // Se carregar
-        iframe.addEventListener('load', () => {
-            loadAttempted = true;
-            try {
-                if (iframe.contentDocument) {
-                    // Conseguiu - está funcionando
-                    observer.disconnect();
-                }
-            } catch (e) {
-                showPreviewFallback(container, link, emoji, gradient);
-            }
-        });
-
-        // Erro ao carregar
-        iframe.addEventListener('error', () => {
-            observer.disconnect();
-            showPreviewFallback(container, link, emoji, gradient);
-        });
-
-        // Timeout agressivo - 2 segundos
-        setTimeout(() => {
-            if (!loadAttempted) {
-                observer.disconnect();
-                showPreviewFallback(container, link, emoji, gradient);
-            }
-        }, 2000);
-    }
 
     // Event listener para favoritar
     const favBtn = card.querySelector('.preview-card-favorite');
@@ -1398,39 +1373,6 @@ function createPreviewCard(link) {
     }
 
     return card;
-}
-
-// Mostrar fallback quando site bloqueia
-function showPreviewFallback(container, link, emoji, gradient) {
-    container.innerHTML = `
-        <div style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            background: ${gradient};
-            padding: 20px;
-            text-align: center;
-            color: white;
-            flex-direction: column;
-            gap: 12px;
-        ">
-            <div style="font-size: 3em; opacity: 0.9;">${emoji}</div>
-            <div style="font-size: 0.95em; font-weight: 600;">
-                ${escapeHtml(link.titulo || link.url)}
-            </div>
-            <div style="font-size: 0.85em; opacity: 0.8;">
-                ${escapeHtml(link.categoria || 'Link')}
-            </div>
-            <a href="${link.url}" target="_blank" style="
-                font-size: 0.8em;
-                color: white;
-                text-decoration: underline;
-                opacity: 0.7;
-                margin-top: 8px;
-            ">🔗 Abrir link</a>
-        </div>
-    `;
 }
 
 
