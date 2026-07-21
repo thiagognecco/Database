@@ -1,0 +1,127 @@
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+🚀 PROCESSAMENTO OTIMIZADO: 250 → 2105 LINKS COM GPU NVIDIA
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+📊 SITUAÇÃO ATUAL:
+  • Total de links: 2105
+  • Já processados: 250 (salvo em dados/checkpoint.json)
+  • Faltam processar: 1855 links
+  • Modelo: Mistral (rodando em GPU NVIDIA via OLLAMA)
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+⚡ COMO USAR:
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+PASSO 1: Verificar setup (1 minuto)
+───────────────────────────────────
+  $ python teste_setup.py
+
+  ✓ Verifica se GPU NVIDIA está ativa
+  ✓ Verifica se OLLAMA está rodando
+  ✓ Verifica se Mistral está carregado
+  ✓ Testa conexão com um request rápido
+
+  Espere tudo estar ✅ antes de prosseguir!
+
+
+PASSO 2: Iniciar processamento (background)
+────────────────────────────────────────────
+  $ python processar_otimizado_gpu.py
+
+  O que faz:
+  ✓ Carrega checkpoint com 250 links já processados
+  ✓ Continua processando link 251 em diante
+  ✓ Libera RAM automaticamente (janela deslizante)
+  ✓ Aproveita GPU NVIDIA para acelerar
+  ✓ Salva checkpoint a cada 100 links
+  ✓ Atualiza dados/checkpoint.json continuamente
+
+
+PASSO 3: Monitorar em tempo real (outro terminal!)
+───────────────────────────────────────────────────
+  $ python monitor_gpu.py
+
+  Mostra em tempo real:
+  ✓ Uso de GPU (%)
+  ✓ Uso de RAM (GB)
+  ✓ Uso de CPU (%)
+  ✓ Status OLLAMA
+  ✓ Progresso dos links
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+🎯 OTIMIZAÇÕES APLICADAS:
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+1. CONTINUIDADE
+   ✓ Usa checkpoint.json dos 250 links já processados
+   ✓ Continua de onde parou sem reprocessar
+
+2. RAM LIBERADA
+   ✓ Janela deslizante: mantém apenas últimos 200 resultados
+   ✓ Não carrega tudo na memória de uma vez
+   ✓ Libera automaticamente dados antigos
+
+3. GPU MAXIMIZADA
+   ✓ Mistral roda em GPU NVIDIA CUDA
+   ✓ Temperature 0.15 para respostas consistentes
+   ✓ Context pequeno (1024 tokens) = menos RAM
+
+4. CHECKPOINTS FREQUENTES
+   ✓ Salva a cada 100 links processados
+   ✓ Se falhar, continua de onde parou
+   ✓ Nunca perde trabalho
+
+5. MONITORAMENTO
+   ✓ Mostra progresso em tempo real
+   ✓ Mostra ETA de conclusão
+   ✓ Mostra velocidade (links/hora)
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+📈 PERFORMANCE ESTIMADA:
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+  GPU NVIDIA + Mistral: ~10-15 links/minuto
+
+  Para 1855 links restantes:
+  • Tempo estimado: 2-3 horas
+  • Com checkpoints: seguro e recuperável
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+⚠️  NOTAS IMPORTANTES:
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+1. OLLAMA DEVE ESTAR RODANDO
+   Se Mistral não carregar automaticamente:
+   $ ollama pull mistral
+   $ ollama run mistral
+
+2. NVIDIA-SMI DEVE ESTAR INSTALADO
+   Para monitorar GPU (opcional mas recomendado)
+
+3. PSUTIL DEVE ESTAR INSTALADO
+   $ pip install psutil
+   $ pip install requests
+
+4. SE PARAR NO MEIO
+   Simplesmente execute novamente:
+   $ python processar_otimizado_gpu.py
+
+   Vai retomar de onde parou!
+
+5. SE OLLAMA FICAR LENTO
+   Aumente BATCH_SIZE em processar_otimizado_gpu.py
+   (linha 18) para processar mais em paralelo
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+📁 ARQUIVOS GERADOS:
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+  dados/checkpoint.json
+  └─ Checkpoint atualizado (250 → 1855+ links processados)
+
+  dados/links_processados_completo.json
+  └─ Resultado final com todos os 2105 links categorizados
+
+═══════════════════════════════════════════════════════════════════════════════════════════════════
+✨ BOA SORTE! 🎉
+═══════════════════════════════════════════════════════════════════════════════════════════════════
